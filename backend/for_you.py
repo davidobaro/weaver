@@ -119,16 +119,19 @@ def date_window(text, anchor, today, birthday=False):
 
 def source(memory):
     return {field: memory[field] for field in
-            ('id', 'person_id', 'person', 'note_id', 'category', 'value', 'evidence', 'edited')}
+            ('id', 'person_id', 'person', 'note_id', 'note_revision', 'category', 'value', 'evidence', 'edited')}
 
 
 def build_suggestions(db, today=None, timezone='America/New_York'):
     zone = ZoneInfo(timezone)
     today = today or datetime.now(zone).date()
     memories = [dict(row) for row in db.execute('''
-        SELECT m.*, p.name AS person, n.created_at AS noted_at, n.entry_date
+        SELECT m.*, p.name AS person, n.created_at AS noted_at,
+               CASE WHEN v.note_id IS NOT NULL THEN v.entry_date ELSE n.entry_date END AS entry_date
         FROM memories m JOIN people p ON p.id = m.person_id
-        JOIN notes n ON n.id = m.note_id WHERE m.active = 1
+        JOIN notes n ON n.id = m.note_id
+        LEFT JOIN note_versions v ON v.note_id = m.note_id AND v.revision = m.note_revision
+        WHERE m.active = 1
         ORDER BY m.id DESC
     ''')]
     items = []

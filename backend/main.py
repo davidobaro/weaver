@@ -14,9 +14,10 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .inference import InferenceError, extract_memories
-from .models import NoteInput, ReviewInput, MemoryEdit, SuggestionAction, AliasInput, PersonPair
+from .models import NoteInput, ReviewInput, MemoryEdit, SuggestionAction, AliasInput, PersonPair, EntryEdit, EntryRestore
 from .for_you import build_suggestions
 from .profiles import profile_about
+from .revisions import archive_entry, retire_generated, historical_entry, current_predecessor
 from .identities import (IdentityError, aliases_for, add_alias, get_or_create_person,
                          possible_matches, mentioned, merge_people, undo_merge, fingerprint)
 
@@ -83,9 +84,22 @@ def initialize():
             db.execute('ALTER TABLE notes ADD COLUMN automatic INTEGER NOT NULL DEFAULT 0')
         columns = {row['name'] for row in db.execute('PRAGMA table_info(notes)')}
         for column, definition in [('kind', "TEXT NOT NULL DEFAULT 'note'"),
-                                   ('title', "TEXT NOT NULL DEFAULT ''"), ('entry_date', 'TEXT')]:
+                                   ('title', "TEXT NOT NULL DEFAULT ''"), ('entry_date', 'TEXT'),
+                                   ('revision', 'INTEGER NOT NULL DEFAULT 1'), ('updated_at', 'TEXT')]:
             if column not in columns:
                 db.execute(f'ALTER TABLE notes ADD COLUMN {column} {definition}')
+        if 'note_revision' not in {row['name'] for row in db.execute('PRAGMA table_info(memories)')}:
+            db.execute('ALTER TABLE memories ADD COLUMN note_revision INTEGER NOT NULL DEFAULT 1')
+        db.executescript('''
+            CREATE TABLE IF NOT EXISTS note_versions (
+                note_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+                revision INTEGER NOT NULL, text TEXT NOT NULL, title TEXT NOT NULL,
+                kind TEXT NOT NULL, entry_date TEXT, saved_at TEXT NOT NULL,
+                PRIMARY KEY(note_id, revision)
+            );
+            INSERT OR IGNORE INTO note_versions(note_id,revision,text,title,kind,entry_date,saved_at)
+                SELECT id,revision,text,title,kind,entry_date,COALESCE(updated_at,created_at) FROM notes;
+        ''')
 
 
 @asynccontextmanager
@@ -135,12 +149,13 @@ def state():
     with database() as db:
         notes = [note_or_404(db, row['id']) for row in db.execute('SELECT id FROM notes ORDER BY id DESC')]
         notes_by_id = {note['id']: note for note in notes}
+        source_dates = {(row['note_id'], row['revision']): row['entry_date'] for row in db.execute('SELECT note_id, revision, entry_date FROM note_versions')}
         people = [dict(row) for row in db.execute('SELECT id, name FROM people ORDER BY name COLLATE NOCASE')]
         for person in people:
             person['aliases'] = aliases_for(db, person['id'])
             person['memories'] = [dict(row) for row in db.execute(
                 'SELECT * FROM memories WHERE person_id = ? ORDER BY id DESC', (person['id'],))]
-            person['about'] = profile_about(person['memories'], notes_by_id)
+            person['about'] = profile_about(person['memories'], notes_by_id, source_dates)
         matches = possible_matches(db, people)
         merges = [dict(row) for row in db.execute('SELECT id,target_id,source_name,created_at,fingerprint FROM people_merges WHERE undone=0 ORDER BY created_at DESC LIMIT 5')]
         for event in merges:
@@ -161,8 +176,8 @@ def run_extraction(note_id):
             db.execute('UPDATE notes SET error = ? WHERE id = ? AND status = ?', (str(exc), note_id, 'pending'))
         raise HTTPException(502, detail={'message': str(exc), 'note_id': note_id}) from exc
     with database() as db:
-        changed = db.execute("UPDATE notes SET candidates = ?, error = NULL WHERE id = ? AND status = 'pending'",
-                             (json.dumps([item.model_dump() for item in result.memories]), note_id))
+        changed = db.execute("UPDATE notes SET candidates = ?, error = NULL WHERE id = ? AND status = 'pending' AND revision = ?",
+                             (json.dumps([item.model_dump() for item in result.memories]), note_id, note['revision']))
         if not changed.rowcount:
             raise HTTPException(409, 'This note has already been reviewed.')
         return note_or_404(db, note_id)
@@ -194,6 +209,7 @@ def relevant_people(db, text):
 
 
 def organize_note(note_id):
+    note = {}
     try:
         with database() as db:
             db.execute('BEGIN IMMEDIATE')
@@ -208,11 +224,16 @@ def organize_note(note_id):
             candidates = [m.model_dump() for m in extract_memories(entry_text(note), known_people).memories]
         with database() as db:
             db.execute('BEGIN IMMEDIATE')
-            current = db.execute('SELECT status FROM notes WHERE id = ?', (note_id,)).fetchone()
-            if current is None or current['status'] != 'processing':
+            current = db.execute('SELECT status, revision FROM notes WHERE id = ?', (note_id,)).fetchone()
+            if current is None or current['status'] != 'processing' or current['revision'] != note['revision']:
                 return
+            protected = [dict(row) for row in db.execute('SELECT * FROM memories WHERE note_id = ? AND active = 1 AND edited = 1', (note_id,))]
             for candidate in candidates:
+                if any(m['evidence'] == candidate['evidence'] for m in protected):
+                    continue
                 person_id = get_or_create_person(db, candidate['person'])
+                if any(m['person_id'] == person_id and m['category'] == candidate['category'] for m in protected):
+                    continue
                 existing = [dict(m) for m in db.execute('SELECT * FROM memories WHERE person_id = ? AND active = 1', (person_id,))]
                 related = {m['id']: m for m in existing if m['category'] == candidate['category']}
                 duplicate = candidate.get('duplicate_of')
@@ -228,15 +249,15 @@ def organize_note(note_id):
                     replacement = next(iter(related))
                 if replacement:
                     db.execute('UPDATE memories SET active = 0 WHERE id = ?', (replacement,))
-                db.execute('''INSERT INTO memories(person_id,note_id,category,value,evidence,replaces_id)
-                           VALUES (?,?,?,?,?,?)''', (person_id, note_id, candidate['category'], candidate['value'], candidate['evidence'], replacement))
+                db.execute('''INSERT INTO memories(person_id,note_id,category,value,evidence,replaces_id,note_revision)
+                           VALUES (?,?,?,?,?,?,?)''', (person_id, note_id, candidate['category'], candidate['value'], candidate['evidence'], replacement, note['revision']))
             db.execute("UPDATE notes SET status = 'organized', candidates = ?, error = NULL WHERE id = ?", (json.dumps(candidates), note_id))
     except Exception as exc:
         message = str(exc) if isinstance(exc, InferenceError) else 'Could not organize this note. It is saved; please retry.'
         # Never log note contents, model responses, or credentials.
         logging.getLogger(__name__).warning('Note %s organization failed (%s)', note_id, type(exc).__name__)
         with database() as db:
-            db.execute("UPDATE notes SET status = 'failed', error = ? WHERE id = ? AND status = 'processing'", (message, note_id))
+            db.execute("UPDATE notes SET status = 'failed', error = ? WHERE id = ? AND status = 'processing' AND revision = ?", (message, note_id, note.get('revision', -1)))
 
 
 @app.post('/api/notes', status_code=201)
@@ -246,6 +267,7 @@ def add_note(body: NoteInput):
                             (body.text, int(body.automatic), 'queued' if body.automatic else 'pending',
                              body.kind, body.title, body.entry_date.isoformat() if body.entry_date else None)).lastrowid
         note = note_or_404(db, note_id)
+        archive_entry(db, note)
     if body.automatic:
         app.state.worker.submit(organize_note, note_id)
         return note
@@ -297,9 +319,9 @@ def review(note_id: int, body: ReviewInput):
                     raise HTTPException(409, 'The memory to replace is no longer available for this person.')
                 db.execute('UPDATE memories SET active = 0 WHERE id = ?', (item.replaces_id,))
             edited = any(getattr(item, field) != candidate[field] for field in ('person', 'category', 'value'))
-            db.execute('''INSERT INTO memories(person_id,note_id,category,value,evidence,edited,replaces_id)
-                       VALUES (?,?,?,?,?,?,?)''', (person_id, note_id, item.category, item.value,
-                       candidate['evidence'], int(edited), item.replaces_id))
+            db.execute('''INSERT INTO memories(person_id,note_id,category,value,evidence,edited,replaces_id,note_revision)
+                       VALUES (?,?,?,?,?,?,?,?)''', (person_id, note_id, item.category, item.value,
+                       candidate['evidence'], int(edited), item.replaces_id, note['revision']))
         db.execute("UPDATE notes SET status = 'reviewed', error = NULL WHERE id = ?", (note_id,))
     return {'saved': len(body.memories)}
 
@@ -313,9 +335,9 @@ def edit_memory(memory_id: int, body: MemoryEdit):
             raise HTTPException(409, 'This memory has changed. Refresh and try again.')
         person_id = get_or_create_person(db, body.person)
         db.execute('UPDATE memories SET active = 0 WHERE id = ?', (memory_id,))
-        new_id = db.execute('''INSERT INTO memories(person_id,note_id,category,value,evidence,edited,replaces_id)
-                           VALUES (?,?,?,?,?,1,?)''', (person_id, memory['note_id'], body.category, body.value,
-                           memory['evidence'], memory_id)).lastrowid
+        new_id = db.execute('''INSERT INTO memories(person_id,note_id,category,value,evidence,edited,replaces_id,note_revision)
+                           VALUES (?,?,?,?,?,1,?,?)''', (person_id, memory['note_id'], body.category, body.value,
+                           memory['evidence'], memory_id, memory['note_revision'])).lastrowid
         return {'id': new_id}
 
 
@@ -333,8 +355,10 @@ def delete_note(note_id: int):
                 previous = removed[previous]['replaces_id']
             db.execute('UPDATE memories SET replaces_id = ? WHERE replaces_id = ? AND note_id != ?',
                        (previous, memory['id'], note_id))
-            if memory['active'] and previous is not None:
-                db.execute('UPDATE memories SET active = 1 WHERE id = ?', (previous,))
+            if memory['active']:
+                eligible = current_predecessor(db, previous, note_id)
+                if eligible:
+                    db.execute('UPDATE memories SET active = 1 WHERE id = ?', (eligible,))
         db.execute('DELETE FROM notes WHERE id = ?', (note_id,))
         db.execute('DELETE FROM people WHERE id NOT IN (SELECT person_id FROM memories)')
 
@@ -343,6 +367,7 @@ def delete_note(note_id: int):
 def export():
     result = state()
     with database() as db:
+        result['entry_versions'] = [dict(row) for row in db.execute('SELECT * FROM note_versions ORDER BY note_id, revision')]
         result['suggestion_actions'] = [dict(row) for row in db.execute('SELECT * FROM suggestion_actions')]
     return JSONResponse(result, headers={'Content-Disposition': 'attachment; filename="weaver-export.json"'})
 
@@ -419,6 +444,71 @@ def distinguish_people(body: PersonPair):
             raise IdentityError('Choose two existing, different profiles.')
         db.execute('INSERT OR IGNORE INTO distinct_people VALUES (?,?)', (first, second))
     return {'saved': True}
+
+
+@app.get('/api/notes/{note_id}')
+def read_entry(note_id: int, revision: int | None = None):
+    with database() as db:
+        note = note_or_404(db, note_id)
+        if revision is None or revision == note['revision']:
+            return note
+        version = historical_entry(db, note, revision)
+        if version is None:
+            raise HTTPException(404, 'Entry version not found.')
+        return version
+
+
+@app.get('/api/notes/{note_id}/versions')
+def entry_versions(note_id: int):
+    with database() as db:
+        note = note_or_404(db, note_id)
+        archive_entry(db, note)
+        versions = [dict(row) for row in db.execute('''SELECT revision,title,kind,entry_date,saved_at
+                   FROM note_versions WHERE note_id = ? ORDER BY revision DESC''', (note_id,))]
+        return {'current_revision': note['revision'], 'versions': versions}
+
+
+def save_entry_revision(db, note, content, expected_revision):
+    if note['revision'] != expected_revision:
+        raise HTTPException(409, 'This entry changed elsewhere. View the latest version before saving your edit.')
+    fields = ('text', 'title', 'kind', 'entry_date')
+    if all(note[field] == content[field] for field in fields):
+        return note, False
+    archive_entry(db, note)
+    retire_generated(db, note['id'])
+    db.execute('''UPDATE notes SET text=?,title=?,kind=?,entry_date=?,revision=revision+1,
+               updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now'),automatic=1,status='queued',
+               candidates=NULL,error=NULL WHERE id=?''',
+               (*(content[field] for field in fields), note['id']))
+    updated = note_or_404(db, note['id'])
+    archive_entry(db, updated)
+    return updated, True
+
+
+@app.patch('/api/notes/{note_id}')
+def update_entry(note_id: int, body: EntryEdit):
+    content = body.model_dump(exclude={'expected_revision'})
+    content['entry_date'] = body.entry_date.isoformat() if body.entry_date else None
+    with database() as db:
+        db.execute('BEGIN IMMEDIATE')
+        note, changed = save_entry_revision(db, note_or_404(db, note_id), content, body.expected_revision)
+    if changed:
+        app.state.worker.submit(organize_note, note_id)
+    return note
+
+
+@app.post('/api/notes/{note_id}/restore')
+def restore_entry(note_id: int, body: EntryRestore):
+    with database() as db:
+        db.execute('BEGIN IMMEDIATE')
+        current = note_or_404(db, note_id)
+        content = historical_entry(db, current, body.revision)
+        if content is None:
+            raise HTTPException(404, 'Entry version not found.')
+        note, changed = save_entry_revision(db, current, content, body.expected_revision)
+    if changed:
+        app.state.worker.submit(organize_note, note_id)
+    return note
 
 
 # A production build is served by the same local process; development uses Vite.

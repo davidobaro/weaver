@@ -24,12 +24,24 @@ class Extraction(BaseModel):
     memories: list[Candidate] = Field(max_length=40)
 
 
-class NoteInput(BaseModel):
-    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=30000)]
-    automatic: bool = True
+class EntryContent(BaseModel):
+    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=5000)]
     kind: Literal['note', 'journal'] = 'note'
     title: Annotated[str, StringConstraints(strip_whitespace=True, max_length=180)] = ''
     entry_date: date | None = None
+
+
+class NoteInput(EntryContent):
+    automatic: bool = True
+
+
+class EntryEdit(EntryContent):
+    expected_revision: int = Field(ge=1)
+
+
+class EntryRestore(BaseModel):
+    expected_revision: int = Field(ge=1)
+    revision: int = Field(ge=1)
 
 
 class MemoryEdit(BaseModel):

@@ -25,7 +25,7 @@ def overview_category(memory):
     return memory['category']
 
 
-def profile_about(memories, notes):
+def profile_about(memories, notes, source_dates=None):
     """Select a small, diverse overview without turning anecdotes into traits.
 
     Use the actual memory wording, including uncertainty and negation. Promises
@@ -47,8 +47,9 @@ def profile_about(memories, notes):
                 continue
             seen.add(normalized)
             facts.append({'memory_id': memory['id'], 'note_id': memory['note_id'],
+                          'note_revision': memory.get('note_revision', 1),
                           'label': 'Birthday · conflicting notes' if category == 'birthday' and birthday_conflict else label, 'value': memory['value'], 'evidence': memory['evidence'],
-                          'noted_at': note.get('entry_date') or note['created_at'], 'edited': bool(memory['edited'])})
+                          'noted_at': (source_dates or {}).get((memory['note_id'], memory.get('note_revision', 1)), note.get('entry_date')) or note['created_at'], 'edited': bool(memory['edited'])})
             chosen += 1
             if chosen >= (2 if category in {'context', 'background'} or category == 'birthday' and birthday_conflict else 1):
                 break

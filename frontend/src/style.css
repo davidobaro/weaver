@@ -210,3 +210,36 @@ main.notes-page { max-width: 1440px; }
   .journal-suggestions { position: static; max-height: none; overflow: visible; padding-right: 0; }
   .for-you-compact .suggestion-card { padding: 20px; }
 }
+
+.entry-reader-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 9px; color: #9aa68c; margin: 0 0 19px; }
+.entry-reader-meta > span:first-child { letter-spacing: 1.1px; font-size: 8px; }
+.entry-reader-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; padding-top: 18px; margin-top: 20px; border-top: 1px solid var(--border); }
+.entry-reader-actions .small-button { display: flex; align-items: center; gap: 6px; }
+.version-explanation { font-size: 11px; color: #929f80; line-height: 1.9; background: #f0f3e8; border: 1px solid #e2e8d5; padding: 12px; border-radius: 4px; }
+.entry-editor { display: flex; flex-direction: column; gap: 16px; }
+.entry-editor label { display: flex; flex-direction: column; gap: 8px; color: #8e9e7d; font-size: 10px; }
+.entry-editor label > span { font-size: 9px; color: #b0b9a2; }
+.entry-editor input,.entry-editor select,.entry-editor textarea { width: 100%; min-width: 0; padding: 11px; border: 1px solid #e0e7d3; border-radius: 4px; background: #fffefa; font-size: 12px; color: #627a4d; }
+.entry-editor-options { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.entry-editor textarea { min-height: 280px; resize: vertical; line-height: 1.9; }
+.journal-reader .entry-editor textarea { font-family: var(--serif); font-size: 16px; }
+.entry-editor .entry-reader-actions { margin-top: 0; }
+.entry-editor .draft-indicator { margin: 0; }
+.entry-history { margin-top: 22px; border-top: 1px solid var(--border); }
+.entry-history > button { display: flex; justify-content: space-between; align-items: center; gap: 15px; width: 100%; border: 0; border-bottom: 1px solid #e8eddf; background: transparent; text-align: left; padding: 16px 0; color: #95a384; font-size: 10px; }
+.entry-history > button:hover { color: #597442; }
+.entry-history strong { display: block; font-size: 12px; font-weight: 400; margin-top: 7px; }
+.entry-history small { color: #acb59d; font-size: 9px; white-space: nowrap; }
+.recovered-edit { background: #f2f4eb; padding: 13px; color: #939f82; font-size: 10px; line-height: 1.9; }
+.recovered-edit summary { cursor: pointer; }
+.recovered-edit blockquote { max-height: 160px; overflow: auto; white-space: pre-wrap; margin: 12px 0; }
+@media (max-width: 680px) { .entry-editor-options { gap: 12px; } .entry-editor textarea { min-height: 230px; } }
+
+/* Keep the original typography, tightening the letterforms into one wordmark. */
+.brand .brand-wordmark { font: inherit; letter-spacing: -.12em; white-space: nowrap; }
+.brand-period { margin-left: .09em; }
+.brand .woven-threads { transform: rotate(-12deg); }
+
+.entry-limit { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px 14px; margin: 10px 0 0; font: 10px/1.6 'DM Sans', sans-serif; color: #82867b; }
+.entry-limit.over-limit { color: #965e4d; }
+.entry-limit.over-limit > span:last-child { flex-basis: 100%; }

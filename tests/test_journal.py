@@ -45,16 +45,24 @@ def test_personal_reflection_is_a_complete_saved_journal_without_profiles(client
     assert exported['entry_date'] == '2026-10-12'
 
 
-def test_long_writing_and_optional_titles(client):
-    text = ('A little more room to think.\n\n' * 700).strip()
-    assert len(text) > 12000
-    response = client.post('/api/notes', json={'kind': 'journal', 'text': text})
+@pytest.mark.parametrize('kind', ['note', 'journal'])
+def test_entry_limit_accepts_boundary_and_rejects_overflow_without_saving(client, kind):
+    text = 'A quiet day.\n\n' + 'x' * (5000 - len('A quiet day.\n\n'))
+    response = client.post('/api/notes', json={'kind': kind, 'text': text})
     assert response.status_code == 201
     entry = wait(client)['notes'][0]
     assert entry['text'] == text
     assert entry['title'] == ''
-    assert client.post('/api/notes', json={'kind': 'journal', 'text': 'x' * 30001}).status_code == 422
-    assert client.post('/api/notes', json={'kind': 'journal', 'text': '  '}).status_code == 422
+    assert client.post('/api/notes', json={'kind': kind, 'text': text + 'x'}).status_code == 422
+    assert client.post('/api/notes', json={'kind': kind, 'text': '  '}).status_code == 422
+    rejected_edit = client.patch(f"/api/notes/{entry['id']}", json={
+        'text': text + 'x', 'kind': kind, 'expected_revision': 1,
+    })
+    assert rejected_edit.status_code == 422
+    state = client.get('/api/state').json()
+    assert len(state['notes']) == 1
+    assert state['notes'][0]['text'] == text
+    assert state['notes'][0]['revision'] == 1
 
 
 def test_journal_title_is_context_and_relative_dates_use_entry_day(client, monkeypatch):

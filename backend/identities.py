@@ -87,7 +87,8 @@ def mentioned(db, person, text):
 def fingerprint(db, person_id):
     snapshot = {'person': dict(db.execute('SELECT * FROM people WHERE id = ?', (person_id,)).fetchone()),
                 'aliases': aliases_for(db, person_id),
-                'memories': [dict(row) for row in db.execute('SELECT * FROM memories WHERE person_id = ? ORDER BY id', (person_id,))]}
+                'memories': [dict(row) for row in db.execute('''SELECT id,person_id,note_id,category,value,evidence,
+                            edited,active,replaces_id,created_at FROM memories WHERE person_id = ? ORDER BY id''', (person_id,))]}
     return hashlib.sha256(json.dumps(snapshot, sort_keys=True).encode()).hexdigest()
 
 

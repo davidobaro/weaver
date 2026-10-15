@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowRight, CalendarDays, Check, ChevronDown, Flower2, Link2, LoaderCircle, MessageCircle, RotateCcw, X } from 'lucide-react'
 import { api } from './api'
 
-type Source = { id: number; person_id: number; person: string; note_id: number; category: string; value: string; evidence: string; edited: number }
+type Source = { id: number; person_id: number; person: string; note_id: number; note_revision?: number; category: string; value: string; evidence: string; edited: number }
 type Kind = 'follow_up' | 'date' | 'connection'
 type Suggestion = { id: string; kind: Kind; title: string; why: string; sources: Source[]; due_start: string | null; due_end: string | null; overdue: boolean; status: 'open' | 'done' | 'dismissed' }
 type Feed = { suggestions: Suggestion[]; today: string; timezone: string }
@@ -25,7 +25,7 @@ function dateLabel(item: Suggestion, today: string) {
 }
 
 export default function ForYou({ revision, onSource, onPerson, onAddNote, compact = false }: {
-  compact?: boolean; revision: unknown; onSource: (noteId: number) => void; onPerson: (personId: number) => void; onAddNote: () => void
+  compact?: boolean; revision: unknown; onSource: (noteId: number, revision?: number) => void; onPerson: (personId: number) => void; onAddNote: () => void
 }) {
   const [feed, setFeed] = useState<Feed | null>(null)
   const [error, setError] = useState('')
@@ -72,7 +72,7 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
           <Title>{item.title}</Title>
           <div className="suggestion-facts">{item.sources.map((source, index) => <p key={`${source.id}-${index}`}>{item.kind === 'connection' && <strong>{source.person}: </strong>}{source.value}</p>)}</div>
           <p className="suggestion-why">{item.why}</p>
-          <details className="suggestion-sources"><summary>Why this appeared <ChevronDown size={13} /></summary>{item.sources.map((source, index) => <div key={`${source.id}-${index}`}><button className="source-link" onClick={() => onPerson(source.person_id)}>{source.person}</button><blockquote>“{source.evidence}”</blockquote><button className="source-link" onClick={() => onSource(source.note_id)}>Read source note <ArrowRight size={12} /></button>{!!source.edited && <span className="edited-label">Memory edited by you</span>}</div>)}</details>
+          <details className="suggestion-sources"><summary>Why this appeared <ChevronDown size={13} /></summary>{item.sources.map((source, index) => <div key={`${source.id}-${index}`}><button className="source-link" onClick={() => onPerson(source.person_id)}>{source.person}</button><blockquote>“{source.evidence}”</blockquote><button className="source-link" onClick={() => onSource(source.note_id, source.note_revision)}>Read source note <ArrowRight size={12} /></button>{!!source.edited && <span className="edited-label">Memory edited by you</span>}</div>)}</details>
           <div className="suggestion-actions"><button className="small-button" disabled={busy} onClick={() => act(item, 'done')}><Check size={13} /> Mark done</button><button className="text-button" disabled={busy} onClick={() => act(item, 'dismissed')}><X size={13} /> Dismiss</button></div>
         </article>
       })}</div>

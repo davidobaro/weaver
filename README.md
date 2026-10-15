@@ -140,10 +140,22 @@ Identity resolution is local and uses confirmed names/aliases. Nemotron must ret
 The **Journal** workspace has two writing modes in one shared flow:
 
 - **Quick note:** capture a passing thought or conversation.
-- **Journal entry:** a larger writing space, an optional title, and a chosen entry date. Entries support up to 30,000 characters and preserve paragraph breaks.
+- **Journal entry:** a larger writing space, an optional title, and a chosen entry date. New entries and edits support up to 5,000 characters and preserve paragraph breaks. Both writing modes show a live character counter; over-limit drafts remain intact, with saving disabled until shortened or split. Existing saved entries and their history are preserved.
 
 Both save immediately to the existing local database and organize in the background. Titles are included as context for extracting source-backed memories. A reflection without named people remains a complete saved entry; it does not need a profile or suggestion to be valuable. The original notes remain available as quick notes after the schema migration.
 
 Drafts are saved in this browser's local storage on this device and restored after refreshing. The draft indicator reports when browser storage is unavailable. Saving an entry clears its draft after the server acknowledges it. Unsubmitted drafts are not included in the database export. Entries and relevant memories are sent to Nebius for inference when submitted, as with the original note flow; opening or drafting an entry does not call the model.
 
-The entries list can be filtered by Notes/Journal and searched by title or text. Open an entry to read its full text. People, About, aliases, and For you use the same underlying memories. For a backdated journal entry, relative date phrases use its chosen entry date rather than the later capture date. This is a plain-text first version; post-save editing of entries and rich-text formatting are not implemented yet.
+The entries list can be filtered by Notes/Journal and searched by title or text. Open an entry to read its full text. People, About, aliases, and For you use the same underlying memories. For a backdated journal entry, relative date phrases use its chosen entry date rather than the later capture date. This is a plain-text first version; saved entries support editing and version history. Rich-text formatting is not implemented yet.
+
+## Editing and version history
+
+Open an entry and choose **Edit entry** to change its title, type, date, or body. **Save changes** immediately saves a new revision and updates connected information in the background. Identical content does not create another revision. Edits made from a stale tab return a conflict instead of overwriting a newer version.
+
+**Version history** opens previous versions. **Restore this version** copies the selected version into a new revision; it does not erase later history. Version history is included in JSON export, and deleting an entry removes all of its versions.
+
+Automatic facts from revised text are retired immediately so stale suggestions do not linger during processing or an inference failure. Re-extraction reads the new revision, and an older in-flight response cannot publish facts into a newer revision. If processing fails, the edited writing and its history remain saved; retry from the entry list.
+
+Manually corrected memories are retained with their original source revision. Re-extraction does not overwrite that entry's manually corrected person/category slots, so additional automatic facts in those slots may be skipped. Use All memories to revise a manual correction. Source links from profiles, About, and For you open the actual entry version used as evidence. Relative dates in retained manual memories continue to use that source version's entry date.
+
+Editing drafts are saved locally in this browser. Closing the reader preserves a draft; Cancel edit discards it. If a draft predates the current entry, it can be reviewed and explicitly recovered. Version history and source snapshots are stored in SQLite; private writing is excluded from Git.

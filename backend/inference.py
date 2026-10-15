@@ -68,7 +68,7 @@ def extract_memories(note: str, known_people: list | None = None) -> Extraction:
                 json={'model': model, 'messages': [
                     {'role': 'system', 'content': PROMPT},
                     {'role': 'user', 'content': json.dumps({'new_note': note, 'known_people': known_people or []})}],
-                    'temperature': 0, 'max_tokens': 4096,
+                    'temperature': 0, 'max_tokens': 8192,
                     'response_format': {'type': 'json_object'}})
         if response.status_code == 401:
             raise InferenceError('Nebius rejected the API key. Check your local .env file.')
@@ -78,7 +78,7 @@ def extract_memories(note: str, known_people: list | None = None) -> Extraction:
         data = response.json()
         choice = data['choices'][0]
         if choice.get('finish_reason') == 'length':
-            raise InferenceError('The model ran out of space. Try a shorter note; the original is saved.')
+            raise InferenceError('Organization reached its response limit. Your writing is saved. Retry, or split a detailed entry into smaller parts.')
         return parse_extraction(choice['message']['content'], note)
     except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
         raise InferenceError('Could not get a valid response from Nebius. Your note is saved; please retry.') from exc
