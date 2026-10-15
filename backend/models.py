@@ -1,4 +1,5 @@
 from typing import Literal
+from datetime import date
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from typing_extensions import Annotated
@@ -24,8 +25,11 @@ class Extraction(BaseModel):
 
 
 class NoteInput(BaseModel):
-    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=12000)]
+    text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=30000)]
     automatic: bool = True
+    kind: Literal['note', 'journal'] = 'note'
+    title: Annotated[str, StringConstraints(strip_whitespace=True, max_length=180)] = ''
+    entry_date: date | None = None
 
 
 class MemoryEdit(BaseModel):
@@ -44,3 +48,16 @@ class ReviewedMemory(BaseModel):
 
 class ReviewInput(BaseModel):
     memories: list[ReviewedMemory] = Field(max_length=40)
+
+
+class SuggestionAction(BaseModel):
+    status: Literal['done', 'dismissed', 'open']
+
+
+class AliasInput(BaseModel):
+    name: Name
+
+
+class PersonPair(BaseModel):
+    source_id: int = Field(gt=0)
+    target_id: int = Field(gt=0)

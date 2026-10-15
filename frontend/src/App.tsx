@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, ArrowUpRight, BookOpen, Check, ChevronLeft, Download, FileText, Flower2, Layers3, LoaderCircle, Plus, Search, ShieldCheck, Sparkles, Trash2, Users, X } from 'lucide-react'
+import ForYou from './ForYou'
+import IdentityTools, { IdentityQuestion } from './IdentityTools'
+import type { Alias, Match, Merge } from './IdentityTools'
+import { api, ApiError } from './api'
+import { ArrowRight, ArrowUpRight, BookOpen, Check, ChevronLeft, Download, FileText, Flower2, LoaderCircle, Plus, Search, ShieldCheck, Sparkles, Trash2, Users, X } from 'lucide-react'
 
 type Category = 'birthday' | 'interest' | 'plan' | 'commitment' | 'relationship' | 'context'
 type Candidate = { person: string; category: Category; value: string; evidence: string }
-type Note = { id: number; text: string; status: string; candidates: Candidate[] | null; error: string | null; created_at: string }
+type EntryKind = 'note' | 'journal'
+type Note = { kind?: EntryKind; title?: string; entry_date?: string | null; id: number; text: string; status: string; candidates: Candidate[] | null; error: string | null; created_at: string }
 type Memory = Candidate & { id: number; note_id: number; active: number; edited: number; replaces_id: number | null }
-type Person = { id: number; name: string; memories: Memory[] }
-type State = { notes: Note[]; people: Person[]; inference_configured: boolean; model: string }
+type AboutFact = { memory_id: number; note_id: number; label: string; value: string; evidence: string; noted_at: string; edited: boolean }
+type Person = { id: number; name: string; aliases?: Alias[]; memories: Memory[]; about?: { facts: AboutFact[]; note_count: number } }
+type State = { identity_matches?: Match[]; people_merges?: Merge[]; notes: Note[]; people: Person[]; inference_configured: boolean; model: string }
 type Draft = Candidate & { candidate_index: number; selected: boolean; replaces_id: number | null }
 const categories: Category[] = ['birthday', 'interest', 'plan', 'commitment', 'relationship', 'context']
 const categoryLabels: Record<Category, string> = { birthday: 'Important dates', interest: 'Things they love', plan: 'Plans & intentions', commitment: 'Promises & commitments', relationship: 'Their connections', context: 'Shared context' }
@@ -16,26 +22,28 @@ const samples = [
   { title: 'A correction about Drake', text: 'Drake told me his birthday is April 18, not April 8 as I had written before. Drake enjoys jazz and is learning to play piano.' },
 ]
 const normalize = (name: string) => name.trim().replace(/\s+/g, ' ').toLocaleLowerCase()
-const date = (value: string) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+const date = (value: string) => new Date(value.length === 10 ? `${value}T12:00:00` : value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 
-class ApiError extends Error {
-  constructor(message: string, public noteId?: number) { super(message) }
-}
-
-async function api<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
-  const response = await fetch(`/api${path}`, { method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined })
-  if (!response.ok) {
-    const result = await response.json().catch(() => null)
-    const detail = result?.detail
-    throw new ApiError(typeof detail === 'string' ? detail : detail?.message || 'Something went wrong. Please try again.', detail?.note_id)
-  }
-  return response.status === 204 ? undefined as T : response.json()
+const draftKey = 'weaver-writing-draft-v1'
+const localToday = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}` }
+function readDraft(): { text: string; title: string; kind: EntryKind; entryDate: string } {
+  try {
+    const draft = JSON.parse(localStorage.getItem(draftKey) || '{}')
+    return { text: typeof draft.text === 'string' ? draft.text : '', title: typeof draft.title === 'string' ? draft.title : '', kind: draft.kind === 'journal' ? 'journal' : 'note', entryDate: /^\d{4}-\d{2}-\d{2}$/.test(draft.entryDate || '') ? draft.entryDate : localToday() }
+  } catch { return { text: '', title: '', kind: 'note', entryDate: localToday() } }
 }
 
 export default function App() {
   const [data, setData] = useState<State | null>(null)
-  const [view, setView] = useState<'notes' | 'people'>('notes')
-  const [text, setText] = useState('')
+  const [view, setView] = useState<'notes' | 'people' | 'for-you'>(() => window.location.hash === '#for-you' ? 'for-you' : window.location.hash === '#people' ? 'people' : 'notes')
+  const [initialDraft] = useState(readDraft)
+  const [text, setText] = useState(initialDraft.text)
+  const [title, setTitle] = useState(initialDraft.title)
+  const [kind, setKind] = useState<EntryKind>(initialDraft.kind)
+  const [entryDate, setEntryDate] = useState(initialDraft.entryDate)
+  const [entryFilter, setEntryFilter] = useState<'all' | EntryKind>('all')
+  const [entrySearch, setEntrySearch] = useState('')
+  const [draftStored, setDraftStored] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -46,6 +54,15 @@ export default function App() {
   const [search, setSearch] = useState('')
   const [deleting, setDeleting] = useState<number | null>(null)
   const modalRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    try {
+      if (text || title) { localStorage.setItem(draftKey, JSON.stringify({text, title, kind, entryDate})); setDraftStored(true) }
+      else { localStorage.removeItem(draftKey); setDraftStored(false) }
+    } catch { setDraftStored(false) }
+  }, [text, title, kind, entryDate])
+
+  useEffect(() => { window.history.replaceState(null, '', `#${view}`) }, [view])
 
   const refresh = async () => { const state = await api<State>('/state'); setData(state); return state }
   useEffect(() => { refresh().catch(err => setError(err.message)) }, [])
@@ -80,10 +97,10 @@ export default function App() {
   const extract = async (note?: Note) => {
     setBusy(true); setError(''); setNotice('')
     try {
-      await api<Note>(note ? `/notes/${note.id}/organize` : '/notes', 'POST', note ? undefined : { text })
-      if (!note) setText('')
+      await api<Note>(note ? `/notes/${note.id}/organize` : '/notes', 'POST', note ? undefined : { text, kind, title, entry_date: kind === 'journal' ? entryDate : null })
+      if (!note) { setText(''); setTitle('') }
       setReviewNote(null)
-      setNotice('Note saved. Weaver is connecting the details in the background.')
+      setNotice(note ? 'Entry saved. Weaver will take it from here.' : kind === 'journal' ? 'Journal entry saved.' : 'Note saved.')
     } catch (err) {
       setError((err as Error).message)
       if (!note && err instanceof ApiError && err.noteId) setText('')
@@ -113,33 +130,37 @@ export default function App() {
     finally { setBusy(false) }
   }
   const update = (index: number, patch: Partial<Draft>) => setDrafts(items => items.map((item, i) => i === index ? { ...item, ...patch } : item))
-  const people = (data?.people || []).filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+  const people = (data?.people || []).filter(p => [p.name, ...(p.aliases || []).map(a => a.name)].some(name => normalize(name).includes(normalize(search))))
   const selectedPerson = data?.people.find(p => p.id === personId)
+  const entries = (data?.notes || []).filter(entry => (entryFilter === 'all' || (entry.kind || 'note') === entryFilter) && `${entry.title || ''} ${entry.text}`.toLocaleLowerCase().includes(entrySearch.toLocaleLowerCase()))
+  const identityChanged = async (id?: number) => { await refresh(); if (id) setPersonId(id) }
   const pending = data?.notes.filter(n => n.status === 'queued' || n.status === 'processing') || []
-  const count = data?.people.reduce((sum, p) => sum + p.memories.filter(m => m.active).length, 0) || 0
   const chosen = drafts.filter(d => d.selected)
   const sharedPeople = selectedPerson ? (data?.people || []).filter(p => p.id !== selectedPerson.id && p.memories.some(m => selectedPerson.memories.some(own => own.note_id === m.note_id))) : []
 
   return <div className="app-shell">
     <aside className="sidebar">
       <a className="brand" href="/" aria-label="Weaver home"><Flower2 size={31} strokeWidth={1.6} /><span>weaver<span className="brand-dot">.</span></span></a>
-      <p className="sidebar-label">YOUR LITTLE WORLD</p>
+      <div className="sidebar-nav-spacer" />
       <nav aria-label="Main navigation">
-        <button className={view === 'notes' ? 'nav-item active' : 'nav-item'} onClick={() => { setView('notes'); setNotice('') }}><BookOpen size={18} /> Notes <span>{data?.notes.length || 0}</span></button>
+        <button className={view === 'for-you' ? 'nav-item active' : 'nav-item'} onClick={() => { setView('for-you'); setNotice('') }}><Sparkles size={18} /> For you</button>
+        <button className={view === 'notes' ? 'nav-item active' : 'nav-item'} onClick={() => { setView('notes'); setNotice('') }}><BookOpen size={18} /> Journal <span>{data?.notes.length || 0}</span></button>
         <button className={view === 'people' ? 'nav-item active' : 'nav-item'} onClick={() => { setView('people'); setNotice('') }}><Users size={18} /> People <span>{data?.people.length || 0}</span></button>
       </nav>
-      <div className="sidebar-bottom"><div className="private-icon"><ShieldCheck size={19} /></div><strong>Your memory, your control.</strong><p>Saved on this device.<br />Notes and relevant memories are sent to Nebius to connect the details.</p><a href="/api/export" download><Download size={14} /> Export your memories</a></div>
+      <div className="sidebar-bottom"><details className="data-details"><summary><ShieldCheck size={14} /> About your data</summary><p>Saved on this device. Entries and relevant memories are sent to Nebius to connect the details.</p></details><a href="/api/export" download><Download size={14} /> Export your memories</a></div>
       <div className="workspace"><span className="workspace-avatar">W</span><div>Personal workspace<small>Local · First edition</small></div></div>
     </aside>
 
     <div className="main-shell">
-      <header className="topbar"><div>Personal workspace <span>/</span> <strong>{view === 'notes' ? 'Notes' : 'People'}</strong></div><span className="connection"><i className={data?.inference_configured ? '' : 'offline'} />{data?.inference_configured ? 'Nebius connected' : 'Checking connection'}</span></header>
-      <main>
-        <div className="page-heading"><div><p className="eyebrow">A LITTLE ATTENTION GOES A LONG WAY</p><h1>{view === 'notes' ? 'Remember what matters.' : 'The people in your world.'}</h1><p className="subtitle">{view === 'notes' ? 'Small details. Meaningful connections. A place to keep both.' : 'The things that make them, them. Kept together, with care.'}</p></div><span className="edition">YOUR PERSONAL MEMORY</span></div>
+      <header className="topbar"><div>Personal workspace{view === 'people' && <><span>/</span><strong>People</strong></>}</div><span className="connection"><i className={data?.inference_configured ? '' : 'offline'} />{data?.inference_configured ? 'Nebius connected' : 'Checking connection'}</span></header>
+      <main className={view === 'notes' ? 'notes-page' : view === 'for-you' ? 'for-you-page' : undefined}>
+        {view === 'for-you' ? <div className="page-heading notes-heading"><div><h1>For you</h1><p className="subtitle">A few things worth a little attention.</p></div></div> : view === 'notes' ? <div className="page-heading notes-heading"><div><h1>A place for your days.</h1><p className="subtitle">A quick thought or a longer story. Make room for both.</p></div></div> : <div className="page-heading"><div><p className="eyebrow">A LITTLE ATTENTION GOES A LONG WAY</p><h1>The people in your world.</h1><p className="subtitle">The things that make them, them. Kept together, with care.</p></div><span className="edition">YOUR PERSONAL MEMORY</span></div>}
 
         {error && <div className="alert error" role="alert"><span>{error}</span><button aria-label="Dismiss error" onClick={() => setError('')}><X size={17} /></button></div>}
         {notice && <div className="alert success" role="status"><Check size={18} /><span>{notice}</span><button aria-label="Dismiss notification" onClick={() => setNotice('')}><X size={17} /></button></div>}
         {!data && <div className="loading-state"><LoaderCircle className="spin" />{error ? <button onClick={() => refresh().then(() => setError('')).catch(e => setError(e.message))}>Retry loading Weaver</button> : 'Opening your workspace…'}</div>}
+
+        {data && view === 'for-you' && <ForYou revision={data} onSource={id => setSource(data.notes.find(note => note.id === id) || null)} onPerson={id => { setPersonId(id); setView('people') }} onAddNote={() => { setView('notes'); setReviewNote(null) }} />}
 
         {data && view === 'notes' && <div className="notes-layout"><section className="notes-main">
           {reviewNote ? <section className="card review-card">
@@ -158,28 +179,31 @@ export default function App() {
             })}</div>
             <datalist id="people-names">{data.people.map(p => <option key={p.id} value={p.name} />)}</datalist>
             <div className="review-actions"><button className="text-button" disabled={busy} onClick={() => setReviewNote(null)}><ChevronLeft size={15} /> Review later</button><button className="primary" disabled={busy || chosen.some(d => !d.person.trim() || !d.value.trim())} onClick={save}>{busy ? <LoaderCircle className="spin" size={16} /> : <Check size={16} />}{chosen.length ? `Save ${chosen.length} ${chosen.length === 1 ? 'memory' : 'memories'}` : 'Finish without saving'}</button></div>
-          </section> : <section className="card composer">
-            <div className="card-heading"><span className="section-icon"><Plus size={21} /></span><div><h2>Drop a thought. Leave the rest to Weaver.</h2><p>People, plans, promises. Automatically connected and remembered.</p></div></div>
-            <label className="sr-only" htmlFor="note-text">Your note</label><textarea id="note-text" maxLength={12000} value={text} disabled={busy} onChange={e => setText(e.target.value)} placeholder="Had coffee with Maya. Her birthday is June 12, she’s been getting into ceramics, and I promised to send her that trail guide…" />
-            <div className="composer-footer"><span><ShieldCheck size={14} /> Organized automatically. Always yours to change.</span><button className="primary" disabled={busy || !text.trim()} onClick={() => extract()}>{busy ? <><LoaderCircle size={16} className="spin" /> Saving your note…</> : <>Save note <ArrowRight size={16} /></>}</button></div>
-            <p className="inference-note">Weaver uses Nemotron on Nebius to organize your note with relevant existing memories. Saved notes and profiles stay on this device.</p>
+          </section> : <section className={`card composer writing-composer ${kind === 'journal' ? 'journal-composer' : ''}`} aria-label="Writing space">
+            <div className="writing-toolbar"><div className="writing-modes" role="group" aria-label="Writing mode"><button aria-pressed={kind === 'note'} disabled={busy} onClick={() => setKind('note')}>Quick note</button><button aria-pressed={kind === 'journal'} disabled={busy} onClick={() => setKind('journal')}>Journal entry</button></div>{kind === 'journal' && <label className="entry-date-label"><span className="sr-only">Entry date</span><input aria-label="Entry date" type="date" value={entryDate} disabled={busy} onChange={event => setEntryDate(event.target.value)} /></label>}</div>
+            {kind === 'journal' && <><label className="sr-only" htmlFor="entry-title">Entry title</label><input className="entry-title" id="entry-title" maxLength={180} value={title} disabled={busy} onChange={event => setTitle(event.target.value)} placeholder="Give today a title, if you like…" /></>}
+            <label className="sr-only" htmlFor="note-text">{kind === 'journal' ? 'Your journal entry' : 'Your note'}</label><textarea id="note-text" maxLength={30000} value={text} disabled={busy} onChange={event => setText(event.target.value)} placeholder={kind === 'journal' ? 'What’s on your mind?\n\nStart anywhere. The small moments count, too.' : 'What would you like to remember?'} />
+            <div className="composer-footer"><span className="draft-indicator" role="status">{text || title ? draftStored ? 'Draft saved on this device' : 'Draft not backed up — keep this page open' : ''}</span><button className="primary" disabled={busy || !text.trim() || kind === 'journal' && !entryDate} onClick={() => extract()}>{busy ? <><LoaderCircle size={16} className="spin" /> Saving…</> : <>{kind === 'journal' ? 'Save entry' : 'Save note'} <ArrowRight size={16} /></>}</button></div>
           </section>}
 
-          {!reviewNote && !data.notes.length && <section className="examples"><div className="section-title"><h3>A place to start</h3><span>FICTIONAL SAMPLE NOTES</span></div><div className="sample-grid">{samples.map((sample, i) => <button key={sample.title} disabled={busy} onClick={() => setText(sample.text)}><span className={`sample-number sample-${i}`}>0{i + 1}</span><strong>{sample.title}</strong><p>{sample.text}</p><span className="sample-action">Try this note <ArrowUpRight size={14} /></span></button>)}</div></section>}
+          {!reviewNote && !data.notes.length && <p className="notes-empty">Your entries will appear here. Write for yourself; Weaver will connect the details when there are any.<button className="text-button" disabled={busy} onClick={() => setText(samples[0].text)}>Try an example</button></p>}
 
-          {!!data.notes.length && <section className="note-history"><div className="section-title"><h3>Your notes <span className="count">{data.notes.length}</span></h3><span>{pending.length ? `${pending.length} ORGANIZING` : 'A THREAD OF EVERYDAY MOMENTS'}</span></div>{data.notes.map(note => <article className="note-row" key={note.id}><div className="note-row-icon"><FileText size={18} /></div><div className="note-row-content"><button className="note-preview" onClick={() => setSource(note)}>{note.text}</button><span className="note-meta">{date(note.created_at)} <span>·</span> <span className={note.status === 'pending' ? 'pending-text' : ''}>{note.status === 'queued' ? 'Queued · saved on this device' : note.status === 'processing' ? 'Connecting the details…' : note.status === 'failed' ? 'Saved · organization paused' : note.status === 'pending' ? 'Ready to organize' : note.status === 'organized' ? 'Organized automatically' : 'Remembered'}</span></span>{(note.status === 'organized' || note.status === 'reviewed') && <div className="note-connections">{data.people.filter(p => p.memories.some(m => m.note_id === note.id)).map(person => <button key={person.id} onClick={() => { setView('people'); setPersonId(person.id) }}><Users size={11} /> {person.name} <ArrowUpRight size={11} /></button>)}{note.candidates?.length === 0 && <span>No personal details found. Your note is kept.</span>}</div>}{note.error && <p className="note-error">{note.error}</p>}</div><div className="note-row-actions">{['pending', 'failed'].includes(note.status) && <button className="small-button" disabled={busy} onClick={() => extract(note)}>{note.status === 'failed' ? 'Retry' : 'Organize'}</button>}{note.status === 'pending' && note.candidates !== null && <button className="small-button" disabled={busy} onClick={() => openReview(note)}>Inspect</button>}<button className="icon-button" aria-label={`Delete note ${note.id}`} disabled={busy} onClick={() => setDeleting(note.id)}><Trash2 size={15} /></button></div></article>)}</section>}
-        </section><aside className="right-rail"><div className="quiet-card"><div className="orbit"><Flower2 size={46} strokeWidth={1} /><span className="orbit-dot" /></div><p className="eyebrow">MORE THAN A GOOD MEMORY</p><h2>Care is in<br />the little things.</h2><p>A birthday remembered.<br />A promise kept.<br />A conversation picked up<br />right where it left off.</p><div className="quiet-divider" /><span>Make room for the people.<br />We’ll help with the details.</span></div><div className="stats"><div><Users size={17} /><strong>{data.people.length}</strong><span>people remembered</span></div><div><Layers3 size={17} /><strong>{count}</strong><span>details kept</span></div></div><div className="how-it-works"><p className="eyebrow">ONE THOUGHT AT A TIME</p><p><span>01</span> Capture a moment</p><p><span>02</span> Let the details connect</p><p><span>03</span> Come back when you need it</p></div></aside></div>}
+        </section><aside className="journal-suggestions" aria-label="For you alongside your journal"><div className="journal-suggestions-heading"><h2>For you</h2><button className="source-link" onClick={() => setView('for-you')}>Open page <ArrowUpRight size={13} /></button></div><ForYou compact revision={data} onSource={id => setSource(data.notes.find(note => note.id === id) || null)} onPerson={id => { setPersonId(id); setView('people') }} onAddNote={() => document.getElementById('note-text')?.focus()} /></aside>
+
+          {!!data.notes.length && <section className="note-history"><div className="section-title"><h3>Your entries</h3>{pending.length > 0 && <span>{pending.length === 1 ? 'Organizing 1 note…' : `Organizing ${pending.length} notes…`}</span>}</div><div className="entry-list-toolbar"><div className="entry-filters" role="group" aria-label="Filter entries">{(['all', 'note', 'journal'] as const).map(filter => <button key={filter} aria-pressed={entryFilter === filter} onClick={() => setEntryFilter(filter)}>{filter === 'all' ? 'All' : filter === 'note' ? 'Notes' : 'Journal'}</button>)}</div><label className="entry-search"><Search size={14} /><input aria-label="Search entries" placeholder="Find an entry…" value={entrySearch} onChange={event => setEntrySearch(event.target.value)} /></label></div>{!entries.length && <p className="muted">No entries match this view.</p>}{entries.map(note => <article className="note-row" key={note.id}><div className="note-row-content"><button className={`note-preview ${note.kind === 'journal' ? 'journal-preview' : ''}`} onClick={() => setSource(note)}>{(note.title || note.kind === 'journal') && <strong>{note.title || 'Journal entry'}</strong>}<span>{note.text}</span></button><span className="note-meta">{date(note.entry_date || note.created_at)}{note.kind === 'journal' && <><span>·</span><span>Journal</span></>}{['queued', 'processing', 'failed', 'pending'].includes(note.status) && <><span>·</span><span className="pending-text">{note.status === 'queued' ? 'Queued' : note.status === 'processing' ? 'Organizing…' : note.status === 'failed' ? 'Organization paused' : 'Ready to organize'}</span></>}</span>{(note.status === 'organized' || note.status === 'reviewed') && <div className="note-connections">{data.people.filter(p => p.memories.some(m => m.note_id === note.id)).map(person => <button key={person.id} onClick={() => { setView('people'); setPersonId(person.id) }}>{person.name}</button>)}</div>}{note.error && <p className="note-error">{note.error}</p>}</div><div className="note-row-actions">{['pending', 'failed'].includes(note.status) && <button className="small-button" disabled={busy} onClick={() => extract(note)}>{note.status === 'failed' ? 'Retry' : 'Organize'}</button>}{note.status === 'pending' && note.candidates !== null && <button className="small-button" disabled={busy} onClick={() => openReview(note)}>Inspect</button>}<button className="icon-button" aria-label={`Delete note ${note.id}`} disabled={busy} onClick={() => setDeleting(note.id)}><Trash2 size={15} /></button></div></article>)}</section>}
+        </div>}
 
         {data && view === 'people' && <section className="people-section"><div className="people-toolbar"><label className="search"><Search size={17} /><input aria-label="Search people" placeholder="Find someone…" value={search} onChange={e => setSearch(e.target.value)} /></label><button className="primary" onClick={() => { setView('notes'); setReviewNote(null) }}><Plus size={16} /> Add a note</button></div>
-          {!data.people.length ? <div className="card empty-people"><Users size={35} strokeWidth={1.2} /><h2>Every connection starts somewhere.</h2><p>Drop in a note. Weaver will build the profiles for you.</p><button className="text-button" onClick={() => setView('notes')}>Write your first note <ArrowRight size={16} /></button></div> : <div className="people-layout"><div className="people-list">{people.map(person => <button key={person.id} className={`person-card ${personId === person.id ? 'selected' : ''}`} onClick={() => setPersonId(person.id)}><span className="avatar">{person.name.slice(0, 1).toUpperCase()}</span><span><strong>{person.name}</strong><small>{person.memories.filter(m => m.active).length} memories</small></span><ArrowUpRight size={16} /></button>)}{!people.length && <p className="muted">No one matches that name.</p>}</div><div className="card profile">{selectedPerson ? <><div className="profile-heading"><span className="avatar large">{selectedPerson.name.slice(0, 1).toUpperCase()}</span><div><p className="eyebrow">A PERSON, NOT JUST A PROFILE</p><h2>{selectedPerson.name}</h2></div></div>{categories.map(category => {
+          {!!data.identity_matches?.length && <IdentityQuestion key={`${data.identity_matches[0].source_id}-${data.identity_matches[0].target_id}`} match={data.identity_matches[0]} onChanged={identityChanged} />}
+          {!data.people.length ? <div className="card empty-people"><Users size={35} strokeWidth={1.2} /><h2>Every connection starts somewhere.</h2><p>Drop in a note. Weaver will build the profiles for you.</p><button className="text-button" onClick={() => setView('notes')}>Write your first note <ArrowRight size={16} /></button></div> : <div className="people-layout"><div className="people-list">{people.map(person => <button key={person.id} className={`person-card ${personId === person.id ? 'selected' : ''}`} onClick={() => setPersonId(person.id)}><span className="avatar">{person.name.slice(0, 1).toUpperCase()}</span><span><strong>{person.name}</strong><small>{person.memories.filter(m => m.active).length} {person.memories.filter(m => m.active).length === 1 ? 'memory' : 'memories'}</small></span><ArrowUpRight size={16} /></button>)}{!people.length && <p className="muted">No one matches that name.</p>}</div><div className="card profile">{selectedPerson ? <><div className="profile-heading"><span className="avatar large">{selectedPerson.name.slice(0, 1).toUpperCase()}</span><div><p className="eyebrow">A PERSON, NOT JUST A PROFILE</p><h2>{selectedPerson.name}</h2>{!!selectedPerson.aliases?.length && <p className="profile-aliases">Also known as {selectedPerson.aliases.map(a => a.name).join(', ')}</p>}</div></div><section className="profile-about" aria-label={`About ${selectedPerson.name}`}><div className="about-heading"><h3>About</h3><span>From your notes</span></div>{selectedPerson.about?.facts.length ? <dl className="about-facts">{selectedPerson.about.facts.map(fact => <div key={fact.memory_id}><dt>{fact.label}</dt><dd><p>{fact.value}</p><button className="source-link" onClick={() => setSource(data.notes.find(note => note.id === fact.note_id) || null)}>Noted {date(fact.noted_at)} <ArrowUpRight size={11} /></button></dd></div>)}</dl> : <p className="about-empty">Weaver will build a quick picture here as you add notes about {selectedPerson.name}.</p>}</section><details className="profile-details"><summary>All memories</summary>{categories.map(category => {
             const memories = selectedPerson.memories.filter(m => m.category === category && m.active)
             return memories.length > 0 && <section className="memory-group" key={category}><h3>{categoryLabels[category]}</h3>{memories.map(memory => <MemoryView key={memory.id} memory={memory} person={selectedPerson.name} onEdited={async () => { await refresh() }} onSource={() => setSource(data.notes.find(n => n.id === memory.note_id) || null)} />)}</section>
-          })}{sharedPeople.length > 0 && <section className="memory-group"><h3>Shared notes with</h3><div className="note-connections">{sharedPeople.map(p => <button key={p.id} onClick={() => setPersonId(p.id)}><Users size={11} /> {p.name} <ArrowUpRight size={11} /></button>)}</div></section>}<details className="past-memories"><summary>Previous memories ({selectedPerson.memories.filter(m => !m.active).length})</summary>{selectedPerson.memories.filter(m => !m.active).map(m => <MemoryView key={m.id} memory={m} person={selectedPerson.name} onEdited={async () => { await refresh() }} onSource={() => setSource(data.notes.find(n => n.id === m.note_id) || null)} />)}</details></> : <div className="profile-placeholder"><Flower2 size={38} strokeWidth={1} /><h2>Get to know your memories.</h2><p>Choose someone to see the details you’ve kept.</p></div>}</div></div>}
+          })}{sharedPeople.length > 0 && <section className="memory-group"><h3>Shared notes with</h3><div className="note-connections">{sharedPeople.map(p => <button key={p.id} onClick={() => setPersonId(p.id)}><Users size={11} /> {p.name} <ArrowUpRight size={11} /></button>)}</div></section>}<details className="past-memories"><summary>Previous memories ({selectedPerson.memories.filter(m => !m.active).length})</summary>{selectedPerson.memories.filter(m => !m.active).map(m => <MemoryView key={m.id} memory={m} person={selectedPerson.name} onEdited={async () => { await refresh() }} onSource={() => setSource(data.notes.find(n => n.id === m.note_id) || null)} />)}</details></details><IdentityTools key={selectedPerson.id} person={selectedPerson} people={data.people} merges={data.people_merges || []} onChanged={identityChanged} /></> : <div className="profile-placeholder"><Flower2 size={38} strokeWidth={1} /><h2>Get to know your memories.</h2><p>Choose someone to see the details you’ve kept.</p></div>}</div></div>}
         </section>}
-        <footer className="page-footer"><Flower2 size={15} /> Woven from the moments that matter.<span>Powered by NVIDIA Nemotron · Nebius Token Factory</span></footer>
+        {view === 'people' && <footer className="page-footer"><Flower2 size={15} /> Woven from the moments that matter.<span>Powered by NVIDIA Nemotron · Nebius Token Factory</span></footer>}
       </main>
     </div>
-    {source && <div className="modal-backdrop" onClick={() => setSource(null)}><section ref={modalRef} className="modal" role="dialog" aria-modal="true" aria-labelledby="source-title" onClick={e => e.stopPropagation()}><div className="modal-heading"><h2 id="source-title">The original moment</h2><button className="icon-button" autoFocus aria-label="Close source note" onClick={() => setSource(null)}><X size={20} /></button></div><p className="eyebrow">NOTE {source.id} · {date(source.created_at)}</p><p className="source-text">{source.text}</p><p className="muted">Your original note is kept alongside the details Weaver remembered.</p></section></div>}
+    {source && <div className="modal-backdrop" onClick={() => setSource(null)}><section ref={modalRef} className={`modal ${source.kind === 'journal' ? 'journal-reader' : ''}`} role="dialog" aria-modal="true" aria-labelledby="source-title" onClick={e => e.stopPropagation()}><div className="modal-heading"><h2 id="source-title">{source.title || (source.kind === 'journal' ? 'Journal entry' : 'The original moment')}</h2><button className="icon-button" autoFocus aria-label="Close source note" onClick={() => setSource(null)}><X size={20} /></button></div><p className="eyebrow">{source.kind === 'journal' ? 'JOURNAL' : 'NOTE'} · {date(source.entry_date || source.created_at)}</p><p className="source-text">{source.text}</p><p className="muted">Your writing is kept as saved. Any connected memories link back to this entry.</p></section></div>}
     {deleting !== null && <div className="modal-backdrop"><section ref={modalRef} className="modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-title"><h2 id="delete-title">Delete this moment?</h2><p>This removes the note and memories saved from it. Older memories it replaced will be restored where available.</p><div className="review-actions"><button className="text-button" autoFocus disabled={busy} onClick={() => setDeleting(null)}>Keep note</button><button className="danger-button" disabled={busy} onClick={() => remove(deleting)}>{busy ? 'Deleting…' : 'Delete note & memories'}</button></div></section></div>}
   </div>
 }

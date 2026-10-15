@@ -230,3 +230,34 @@ def test_queue_recovers_after_restart(client, monkeypatch):
     # Simulate an interrupted prior process using a fresh app lifespan.
     with TestClient(main.app) as restarted:
         assert wait_for_note(restarted, note_id)['notes'][0]['status'] == 'organized'
+
+
+def test_invalid_cross_person_connection_rolls_back_all_auto_memories(client, monkeypatch):
+    first = add(client)
+    review(client, first)
+    existing = client.get('/api/state').json()['people'][0]['memories'][0]['id']
+    monkeypatch.setattr(main, 'extract_memories', lambda note, known: parse_extraction(json.dumps({'memories': [
+        {'person': 'Stephen', 'category': 'birthday', 'value': 'June 14', 'evidence': note, 'replaces_id': existing},
+    ]}), note))
+    note_id = automatic_note(client, 'Stephen’s birthday is June 14.')
+    state = wait_for_note(client, note_id, 'failed')
+    assert [p['name'] for p in state['people']] == ['Maya']
+    assert state['people'][0]['memories'][0]['active'] == 1
+
+
+def test_deleted_processing_note_is_not_recreated(client, monkeypatch):
+    release = threading.Event()
+    started = threading.Event()
+    def extract(note, known):
+        started.set()
+        assert release.wait(3)
+        return parse_extraction('{"memories":[]}', note)
+    monkeypatch.setattr(main, 'extract_memories', extract)
+    try:
+        note_id = automatic_note(client, 'A quiet day.')
+        assert started.wait(2)
+        assert client.delete(f'/api/notes/{note_id}').status_code == 204
+    finally:
+        release.set()
+    main.app.state.worker.submit(lambda: None).result(timeout=3)
+    assert client.get('/api/state').json()['notes'] == []

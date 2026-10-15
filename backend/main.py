@@ -6,6 +6,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager, contextmanager
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
@@ -13,7 +14,11 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .inference import InferenceError, extract_memories
-from .models import NoteInput, ReviewInput, MemoryEdit
+from .models import NoteInput, ReviewInput, MemoryEdit, SuggestionAction, AliasInput, PersonPair
+from .for_you import build_suggestions
+from .profiles import profile_about
+from .identities import (IdentityError, aliases_for, add_alias, get_or_create_person,
+                         possible_matches, mentioned, merge_people, undo_merge, fingerprint)
 
 ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / '.env')
@@ -52,9 +57,35 @@ def initialize():
                 replaces_id INTEGER REFERENCES memories(id) ON DELETE SET NULL,
                 created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
             );
+            CREATE TABLE IF NOT EXISTS suggestion_actions (
+                suggestion_id TEXT PRIMARY KEY, status TEXT NOT NULL,
+                updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+            );
+        ''')
+        db.executescript('''
+            CREATE TABLE IF NOT EXISTS person_aliases (
+                name_key TEXT PRIMARY KEY, name TEXT NOT NULL,
+                person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE
+            );
+            CREATE TABLE IF NOT EXISTS distinct_people (
+                first_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+                second_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+                PRIMARY KEY(first_id, second_id), CHECK(first_id < second_id)
+            );
+            CREATE TABLE IF NOT EXISTS people_merges (
+                id TEXT PRIMARY KEY, target_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+                source_name TEXT NOT NULL, snapshot TEXT NOT NULL, fingerprint TEXT NOT NULL,
+                undone INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+            );
         ''')
         if 'automatic' not in {row['name'] for row in db.execute('PRAGMA table_info(notes)')}:
             db.execute('ALTER TABLE notes ADD COLUMN automatic INTEGER NOT NULL DEFAULT 0')
+        columns = {row['name'] for row in db.execute('PRAGMA table_info(notes)')}
+        for column, definition in [('kind', "TEXT NOT NULL DEFAULT 'note'"),
+                                   ('title', "TEXT NOT NULL DEFAULT ''"), ('entry_date', 'TEXT')]:
+            if column not in columns:
+                db.execute(f'ALTER TABLE notes ADD COLUMN {column} {definition}')
 
 
 @asynccontextmanager
@@ -103,11 +134,18 @@ def note_or_404(db, note_id):
 def state():
     with database() as db:
         notes = [note_or_404(db, row['id']) for row in db.execute('SELECT id FROM notes ORDER BY id DESC')]
+        notes_by_id = {note['id']: note for note in notes}
         people = [dict(row) for row in db.execute('SELECT id, name FROM people ORDER BY name COLLATE NOCASE')]
         for person in people:
+            person['aliases'] = aliases_for(db, person['id'])
             person['memories'] = [dict(row) for row in db.execute(
                 'SELECT * FROM memories WHERE person_id = ? ORDER BY id DESC', (person['id'],))]
-    return {'notes': notes, 'people': people, 'inference_configured': bool(os.getenv('NEBIUS_API_KEY')),
+            person['about'] = profile_about(person['memories'], notes_by_id)
+        matches = possible_matches(db, people)
+        merges = [dict(row) for row in db.execute('SELECT id,target_id,source_name,created_at,fingerprint FROM people_merges WHERE undone=0 ORDER BY created_at DESC LIMIT 5')]
+        for event in merges:
+            event['can_undo'] = fingerprint(db, event['target_id']) == event.pop('fingerprint')
+    return {'notes': notes, 'people': people, 'identity_matches': matches, 'people_merges': merges, 'inference_configured': bool(os.getenv('NEBIUS_API_KEY')),
             'model': os.getenv('NEBIUS_MODEL') or 'nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B'}
 
 
@@ -117,7 +155,7 @@ def run_extraction(note_id):
         if note['status'] != 'pending':
             raise HTTPException(409, 'This note has already been reviewed.')
     try:
-        result = extract_memories(note['text'])
+        result = extract_memories(entry_text(note))
     except InferenceError as exc:
         with database() as db:
             db.execute('UPDATE notes SET error = ? WHERE id = ? AND status = ?', (str(exc), note_id, 'pending'))
@@ -138,13 +176,17 @@ def fact_key(value):
     return re.sub(r'[^\w]+', ' ', value.casefold()).strip()
 
 
+def entry_text(note):
+    return (note.get('title', '') + '\n\n' if note.get('title') else '') + note['text']
+
+
 def relevant_people(db, text):
     people = []
     for row in db.execute('SELECT id, name FROM people'):
-        words = row['name'].split()
-        if not any(re.search(r'(?<!\w)' + re.escape(word) + r'(?!\w)', text, re.IGNORECASE) for word in words):
+        if not mentioned(db, row, text):
             continue
         person = dict(row)
+        person['aliases'] = [alias['name'] for alias in aliases_for(db, row['id'])]
         person['memories'] = [dict(m) for m in db.execute(
             'SELECT id, category, value FROM memories WHERE person_id = ? AND active = 1', (row['id'],))]
         people.append(person)
@@ -159,20 +201,18 @@ def organize_note(note_id):
             if not claimed.rowcount:
                 return
             note = note_or_404(db, note_id)
-            known_people = relevant_people(db, note['text'])
+            known_people = relevant_people(db, entry_text(note))
         # Existing proposals can be organized without another inference call.
         candidates = note['candidates']
         if candidates is None:
-            candidates = [m.model_dump() for m in extract_memories(note['text'], known_people).memories]
+            candidates = [m.model_dump() for m in extract_memories(entry_text(note), known_people).memories]
         with database() as db:
             db.execute('BEGIN IMMEDIATE')
             current = db.execute('SELECT status FROM notes WHERE id = ?', (note_id,)).fetchone()
             if current is None or current['status'] != 'processing':
                 return
             for candidate in candidates:
-                person = db.execute('SELECT id FROM people WHERE name_key = ?', (name_key(candidate['person']),)).fetchone()
-                person_id = person['id'] if person else db.execute('INSERT INTO people(name,name_key) VALUES (?,?)',
-                    (candidate['person'], name_key(candidate['person']))).lastrowid
+                person_id = get_or_create_person(db, candidate['person'])
                 existing = [dict(m) for m in db.execute('SELECT * FROM memories WHERE person_id = ? AND active = 1', (person_id,))]
                 related = {m['id']: m for m in existing if m['category'] == candidate['category']}
                 duplicate = candidate.get('duplicate_of')
@@ -202,8 +242,9 @@ def organize_note(note_id):
 @app.post('/api/notes', status_code=201)
 def add_note(body: NoteInput):
     with database() as db:
-        note_id = db.execute('INSERT INTO notes(text, automatic, status) VALUES (?,?,?)',
-                            (body.text, int(body.automatic), 'queued' if body.automatic else 'pending')).lastrowid
+        note_id = db.execute('INSERT INTO notes(text, automatic, status, kind, title, entry_date) VALUES (?,?,?,?,?,?)',
+                            (body.text, int(body.automatic), 'queued' if body.automatic else 'pending',
+                             body.kind, body.title, body.entry_date.isoformat() if body.entry_date else None)).lastrowid
         note = note_or_404(db, note_id)
     if body.automatic:
         app.state.worker.submit(organize_note, note_id)
@@ -249,13 +290,7 @@ def review(note_id: int, body: ReviewInput):
             if item.candidate_index >= len(candidates):
                 raise HTTPException(422, 'Unknown proposed memory.')
             candidate = candidates[item.candidate_index]
-            key = ' '.join(item.person.split()).casefold()
-            person = db.execute('SELECT id FROM people WHERE name_key = ?', (key,)).fetchone()
-            if person:
-                person_id = person['id']
-            else:
-                person_id = db.execute('INSERT INTO people(name,name_key) VALUES (?,?)',
-                                        (item.person, key)).lastrowid
+            person_id = get_or_create_person(db, item.person)
             if item.replaces_id:
                 old = db.execute('SELECT * FROM memories WHERE id = ?', (item.replaces_id,)).fetchone()
                 if not old or old['person_id'] != person_id or not old['active']:
@@ -276,9 +311,7 @@ def edit_memory(memory_id: int, body: MemoryEdit):
         memory = db.execute('SELECT * FROM memories WHERE id = ?', (memory_id,)).fetchone()
         if not memory or not memory['active']:
             raise HTTPException(409, 'This memory has changed. Refresh and try again.')
-        person = db.execute('SELECT id FROM people WHERE name_key = ?', (name_key(body.person),)).fetchone()
-        person_id = person['id'] if person else db.execute('INSERT INTO people(name,name_key) VALUES (?,?)',
-            (body.person, name_key(body.person))).lastrowid
+        person_id = get_or_create_person(db, body.person)
         db.execute('UPDATE memories SET active = 0 WHERE id = ?', (memory_id,))
         new_id = db.execute('''INSERT INTO memories(person_id,note_id,category,value,evidence,edited,replaces_id)
                            VALUES (?,?,?,?,?,1,?)''', (person_id, memory['note_id'], body.category, body.value,
@@ -308,7 +341,84 @@ def delete_note(note_id: int):
 
 @app.get('/api/export')
 def export():
-    return JSONResponse(state(), headers={'Content-Disposition': 'attachment; filename="weaver-export.json"'})
+    result = state()
+    with database() as db:
+        result['suggestion_actions'] = [dict(row) for row in db.execute('SELECT * FROM suggestion_actions')]
+    return JSONResponse(result, headers={'Content-Disposition': 'attachment; filename="weaver-export.json"'})
+
+
+def check_timezone(timezone):
+    try:
+        ZoneInfo(timezone)
+    except (ZoneInfoNotFoundError, ValueError):
+        raise HTTPException(422, 'Unknown timezone.')
+
+
+@app.get('/api/for-you')
+def for_you(timezone: str = 'America/New_York'):
+    check_timezone(timezone)
+    with database() as db:
+        return build_suggestions(db, timezone=timezone)
+
+
+@app.patch('/api/for-you/{suggestion_id}')
+def act_on_suggestion(suggestion_id: str, body: SuggestionAction, timezone: str = 'America/New_York'):
+    check_timezone(timezone)
+    with database() as db:
+        db.execute('BEGIN IMMEDIATE')
+        current = build_suggestions(db, timezone=timezone)
+        if not any(item['id'] == suggestion_id for item in current['suggestions']):
+            raise HTTPException(409, 'This suggestion has changed. Refresh to see the latest.')
+        if body.status == 'open':
+            db.execute('DELETE FROM suggestion_actions WHERE suggestion_id = ?', (suggestion_id,))
+        else:
+            db.execute('''INSERT INTO suggestion_actions(suggestion_id, status) VALUES (?,?)
+                       ON CONFLICT(suggestion_id) DO UPDATE SET status = excluded.status,
+                       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')''', (suggestion_id, body.status))
+    return {'status': body.status}
+
+
+@app.exception_handler(IdentityError)
+async def identity_error(request: Request, exc: IdentityError):
+    return JSONResponse({'detail': str(exc)}, status_code=409)
+
+
+@app.post('/api/people/{person_id}/aliases', status_code=201)
+def register_alias(person_id: int, body: AliasInput):
+    with database() as db:
+        db.execute('BEGIN IMMEDIATE')
+        add_alias(db, person_id, body.name)
+    return {'saved': True}
+
+
+@app.delete('/api/people/{person_id}/aliases', status_code=204)
+def remove_alias(person_id: int, body: AliasInput):
+    with database() as db:
+        db.execute('DELETE FROM person_aliases WHERE person_id = ? AND name_key = ?', (person_id, name_key(body.name)))
+
+
+@app.post('/api/people/merge')
+def merge_profiles(body: PersonPair):
+    with database() as db:
+        db.execute('BEGIN IMMEDIATE')
+        return merge_people(db, body.source_id, body.target_id)
+
+
+@app.post('/api/people/merges/{merge_id}/undo')
+def restore_profiles(merge_id: str):
+    with database() as db:
+        db.execute('BEGIN IMMEDIATE')
+        return undo_merge(db, merge_id)
+
+
+@app.post('/api/people/distinct')
+def distinguish_people(body: PersonPair):
+    first, second = sorted((body.source_id, body.target_id))
+    with database() as db:
+        if first == second or db.execute('SELECT COUNT(*) FROM people WHERE id IN (?,?)', (first, second)).fetchone()[0] != 2:
+            raise IdentityError('Choose two existing, different profiles.')
+        db.execute('INSERT OR IGNORE INTO distinct_people VALUES (?,?)', (first, second))
+    return {'saved': True}
 
 
 # A production build is served by the same local process; development uses Vite.
