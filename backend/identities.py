@@ -4,6 +4,8 @@ import json
 import re
 import uuid
 
+from .utils import name_key
+
 GROUPS = [set(words.split()) for words in (
     'josh joshua', 'joe joseph joey', 'bob robert rob bobby', 'mike michael mikey',
     'liz elizabeth beth lizzy', 'will william bill billy', 'sam samuel samantha',
@@ -15,10 +17,6 @@ GROUPS = [set(words.split()) for words in (
 
 class IdentityError(Exception):
     pass
-
-
-def name_key(name):
-    return ' '.join(name.split()).casefold()
 
 
 def find_person(db, name):

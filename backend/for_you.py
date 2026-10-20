@@ -117,12 +117,16 @@ def date_window(text, anchor, today, birthday=False):
     return None
 
 
+def entry_anchor(row, zone):
+    return date.fromisoformat(row['entry_date']) if row['entry_date'] else stamp_date(row['noted_at'], zone)
+
+
 def source(memory):
     return {field: memory[field] for field in
             ('id', 'person_id', 'person', 'note_id', 'note_revision', 'category', 'value', 'evidence', 'edited')}
 
 
-def build_suggestions(db, today=None, timezone='America/New_York'):
+def build_suggestions(db, today=None, timezone='America/New_York', include_all_plans=False):
     zone = ZoneInfo(timezone)
     today = today or datetime.now(zone).date()
     memories = [dict(row) for row in db.execute('''
@@ -142,7 +146,7 @@ def build_suggestions(db, today=None, timezone='America/New_York'):
             birthdays.setdefault(memory['person_id'], set()).add(normalized(memory['value']))
     for memory in memories:
         category = memory['category']
-        anchor = date.fromisoformat(memory['entry_date']) if memory['entry_date'] else stamp_date(memory['noted_at'], zone)
+        anchor = entry_anchor(memory, zone)
         window = date_window(memory['value'], anchor, today, birthday=category == 'birthday')
         identity = (memory['person_id'], category, normalized(memory['value']))
         item = None
@@ -162,10 +166,18 @@ def build_suggestions(db, today=None, timezone='America/New_York'):
                             'title': f"Revisit a commitment with {memory['person']}",
                             'why': 'Your note includes a promise or commitment worth checking on.', 'rank': 1}
         elif category == 'plan':
-            if window and today <= window[1] and window[0] <= today + timedelta(days=14):
+            if include_all_plans and re.search(r'\b(?:already done|completed|no longer|cancelled|canceled)\b', memory['value'], re.I):
+                continue
+            # Some older extractions classified completed life updates as plans.
+            if include_all_plans and re.search(r'\b(?:started|graduated(?: from)?)\s+(?:college|school|university|a new job)\b|^moved\b', memory['value'], re.I):
+                continue
+            if include_all_plans or window and today <= window[1] and window[0] <= today + timedelta(days=14):
                 item = {'id': key_for('plan', *identity), 'kind': 'date',
                         'title': f"Check in on plans with {memory['person']}",
                         'why': 'This plan has a date or date range coming up.', 'rank': 2}
+                if not window:
+                    item['kind'] = 'follow_up'
+                    item['why'] = 'Your writing includes an open plan or intention.'
             if (not window and (today - anchor).days <= 30) or (window and window[1] >= today):
                 plans.append(memory)
         if item:
@@ -212,10 +224,44 @@ def build_suggestions(db, today=None, timezone='America/New_York'):
                               'sources': [source(plan), source(other)], 'due_start': None, 'due_end': None,
                               'overdue': False, 'rank': 3})
                 break
+    personal_items = {}
+    for row in db.execute('''SELECT r.*, n.created_at AS noted_at, v.entry_date
+                          FROM personal_reminders r JOIN notes n ON n.id = r.note_id
+                          JOIN note_versions v ON v.note_id = r.note_id AND v.revision = r.note_revision
+                          WHERE r.active = 1 AND r.note_revision = n.revision ORDER BY r.id DESC'''):
+        reminder = dict(row)
+        anchor = entry_anchor(reminder, zone)
+        window = date_window(reminder['value'], anchor, today)
+        key = key_for('personal', reminder['category'], normalized(reminder['value']),
+                      window[0] if window else '', window[1] if window else '')
+        source_item = {field: reminder[field] for field in ('id', 'note_id', 'note_revision', 'category', 'value', 'evidence')}
+        source_item.update({'person_id': None, 'person': 'You', 'edited': 0})
+        if key in personal_items:
+            personal_items[key]['sources'].append(source_item)
+            continue
+        titles = {'task': 'A task for you', 'plan': 'A plan for you', 'reminder': 'Something to remember', 'goal': 'A personal goal'}
+        personal_items[key] = {'id': key, 'scope': 'personal', 'category': reminder['category'],
+            'kind': 'date' if window else 'follow_up', 'title': titles[reminder['category']],
+            'why': 'You mentioned this in your writing.', 'sources': [source_item],
+            'due_start': window[0].isoformat() if window else None,
+            'due_end': window[1].isoformat() if window else None,
+            'overdue': bool(window and window[1] < today), 'rank': 1 if not window else 2}
+    items.extend(personal_items.values())
+    completions = {}
+    for row in db.execute('''SELECT c.* FROM personal_completions c
+                          JOIN notes n ON n.id = c.note_id
+                          WHERE c.note_revision = n.revision AND n.status IN ('organized','reviewed')
+                          ORDER BY c.id DESC'''):
+        completions.setdefault(row['reminder_id'], dict(row))
     actions = {row['suggestion_id']: row['status'] for row in db.execute('SELECT suggestion_id, status FROM suggestion_actions')}
     unique = {item['id']: item for item in items}
     result = sorted(unique.values(), key=lambda item: (item['rank'], item['due_start'] or '9999', item['id']))
     for item in result:
-        item['status'] = actions.get(item['id'], 'open')
+        item.setdefault('scope', 'others')
+        automatic = item['scope'] == 'personal' and all(source['id'] in completions for source in item['sources'])
+        item['status'] = actions.get(item['id'], 'done' if automatic else 'open')
+        if automatic and item['id'] not in actions:
+            event = max((completions[source['id']] for source in item['sources']), key=lambda event: event['id'])
+            item['completion'] = {field: event[field] for field in ('note_id', 'note_revision', 'evidence')}
         item.pop('rank')
     return {'suggestions': result, 'today': today.isoformat(), 'timezone': timezone}
