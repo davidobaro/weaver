@@ -24,6 +24,7 @@ def current_predecessor(db, previous, excluded_note_id):
 
 
 def retire_generated(db, note_id):
+    db.execute('UPDATE personal_reminders SET active = 0 WHERE note_id = ?', (note_id,))
     retired = [dict(row) for row in db.execute(
         'SELECT * FROM memories WHERE note_id = ? AND active = 1 AND edited = 0', (note_id,))]
     db.execute('UPDATE memories SET active = 0 WHERE note_id = ? AND edited = 0', (note_id,))
@@ -41,4 +42,4 @@ def historical_entry(db, note, revision):
     return {**note, 'revision': revision, 'current_revision': note['revision'],
             'text': version['text'], 'title': version['title'], 'kind': version['kind'],
             'entry_date': version['entry_date'], 'updated_at': version['saved_at'],
-            'is_history': revision != note['revision'], 'candidates': None}
+            'is_history': revision != note['revision'], 'candidates': None, 'personal_candidates': None, 'completion_candidates': None}

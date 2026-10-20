@@ -19,9 +19,24 @@ class Candidate(BaseModel):
     duplicate_of: int | None = Field(default=None, gt=0)
 
 
+class PersonalCandidate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    category: Literal['task', 'plan', 'reminder', 'goal']
+    value: Value
+    evidence: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=4000)]
+
+
+class PersonalCompletion(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    value: Value
+    evidence: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=4000)]
+
+
 class Extraction(BaseModel):
     model_config = ConfigDict(extra='forbid')
     memories: list[Candidate] = Field(max_length=40)
+    personal: list[PersonalCandidate] = Field(default_factory=list, max_length=40)
+    completed_personal: list[PersonalCompletion] = Field(default_factory=list, max_length=40)
 
 
 class EntryContent(BaseModel):
