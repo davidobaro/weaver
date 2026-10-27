@@ -1,0 +1,58 @@
+[
+  {
+    "text": "need to get peppers from ellis",
+    "result": {
+      "memories": [
+        {
+          "person": "ellis",
+          "category": "plan",
+          "value": "Need to get peppers from ellis",
+          "evidence": "need to get peppers from ellis",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "seconds": 7.55
+  },
+  {
+    "text": "I renewed my passport.",
+    "result": {
+      "memories": [],
+      "personal": [],
+      "completed_personal": [
+        {
+          "value": "Renew my passport",
+          "evidence": "I renewed my passport."
+        }
+      ]
+    },
+    "seconds": 5.35
+  },
+  {
+    "text": "I haven't renewed my passport.",
+    "result": {
+      "memories": [],
+      "personal": [],
+      "completed_personal": []
+    },
+    "seconds": 5.92
+  },
+  {
+    "text": "Today felt quiet. I was tired and wanted some room to breathe.",
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "goal",
+          "value": "wanted some room to breathe",
+          "evidence": "wanted some room to breathe."
+        }
+      ],
+      "completed_personal": []
+    },
+    "seconds": 11.47
+  }
+]

@@ -1,0 +1,887 @@
+[
+  {
+    "number": 1,
+    "name": "New name, short life update",
+    "text": "Tavi moved in.",
+    "expected": {
+      "m": [
+        [
+          "Tavi",
+          "context",
+          "moved"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Tavi",
+          "category": "context",
+          "value": "Moved in",
+          "evidence": "Tavi moved in.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 2.19
+  },
+  {
+    "number": 2,
+    "name": "Lowercase unfamiliar name",
+    "text": "rory started college",
+    "expected": {
+      "m": [
+        [
+          "rory",
+          "context",
+          "college"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "rory",
+          "category": "context",
+          "value": "Started college",
+          "evidence": "rory started college",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.95
+  },
+  {
+    "number": 3,
+    "name": "Lowercase name, errand without I",
+    "text": "need to get peppers from ellis",
+    "expected": {
+      "m": [
+        [
+          "ellis",
+          "plan",
+          "pepper"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "task",
+          "value": "Get peppers from ellis",
+          "evidence": "need to get peppers from ellis"
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": false,
+    "issues": [
+      "memories: expected 1, got 0",
+      "memories: missing expected ('ellis', 'plan', 'pepper')",
+      "personal: expected 0, got 1"
+    ],
+    "seconds": 1.94
+  },
+  {
+    "number": 4,
+    "name": "Apostrophe in a name",
+    "text": "D’Arcy loves jazz.",
+    "expected": {
+      "m": [
+        [
+          "D’Arcy",
+          "interest",
+          "jazz"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "D’Arcy",
+          "category": "interest",
+          "value": "Loves jazz",
+          "evidence": "D’Arcy loves jazz.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.4
+  },
+  {
+    "number": 5,
+    "name": "Accented name",
+    "text": "Zoë enjoys ceramics.",
+    "expected": {
+      "m": [
+        [
+          "Zoë",
+          "interest",
+          "ceramic"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Zoë",
+          "category": "interest",
+          "value": "Enjoys ceramics",
+          "evidence": "Zoë enjoys ceramics.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.78
+  },
+  {
+    "number": 6,
+    "name": "Hyphenated name",
+    "text": "Anne-Marie is studying architecture.",
+    "expected": {
+      "m": [
+        [
+          "Anne-Marie",
+          "context",
+          "architect"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Anne-Marie",
+          "category": "interest",
+          "value": "Studying architecture",
+          "evidence": "Anne-Marie is studying architecture.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": false,
+    "issues": [
+      "memories: missing expected ('Anne-Marie', 'context', 'architect')"
+    ],
+    "seconds": 1.93
+  },
+  {
+    "number": 7,
+    "name": "Several new people",
+    "text": "Tavi loves chess. Ellis moved to Vermont. Zoë is learning guitar.",
+    "expected": {
+      "m": [
+        [
+          "Tavi",
+          "interest",
+          "chess"
+        ],
+        [
+          "Ellis",
+          "context",
+          "Vermont"
+        ],
+        [
+          "Zoë",
+          "interest",
+          "guitar"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Tavi",
+          "category": "interest",
+          "value": "Loves chess",
+          "evidence": "Tavi loves chess.",
+          "replaces_id": null,
+          "duplicate_of": null
+        },
+        {
+          "person": "Ellis",
+          "category": "context",
+          "value": "Moved to Vermont",
+          "evidence": "Ellis moved to Vermont.",
+          "replaces_id": null,
+          "duplicate_of": null
+        },
+        {
+          "person": "Zoë",
+          "category": "interest",
+          "value": "Learning guitar",
+          "evidence": "Zoë is learning guitar.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 3.03
+  },
+  {
+    "number": 8,
+    "name": "Known and new people in one entry",
+    "text": "Nora enjoys ceramics. Tavi loves chess.",
+    "expected": {
+      "m": [
+        [
+          "Nora",
+          "interest",
+          "ceramic"
+        ],
+        [
+          "Tavi",
+          "interest",
+          "chess"
+        ]
+      ],
+      "refs": {
+        "Nora": [
+          "duplicate_of",
+          902
+        ]
+      }
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Nora",
+          "category": "interest",
+          "value": "Enjoys ceramics",
+          "evidence": "Nora enjoys ceramics.",
+          "replaces_id": null,
+          "duplicate_of": 902
+        },
+        {
+          "person": "Tavi",
+          "category": "interest",
+          "value": "Loves chess",
+          "evidence": "Tavi loves chess.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 2.3
+  },
+  {
+    "number": 9,
+    "name": "Correction of an existing birthday",
+    "text": "Nora corrected her birthday: April 18, not April 8.",
+    "expected": {
+      "m": [
+        [
+          "Nora",
+          "birthday",
+          "April 18"
+        ]
+      ],
+      "refs": {
+        "Nora": [
+          "replaces_id",
+          901
+        ]
+      }
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Nora",
+          "category": "birthday",
+          "value": "April 18",
+          "evidence": "Nora corrected her birthday: April 18, not April 8.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": false,
+    "issues": [
+      "Nora: expected replaces_id=901"
+    ],
+    "seconds": 1.62
+  },
+  {
+    "number": 10,
+    "name": "Repeated fact",
+    "text": "Nora enjoys ceramics.",
+    "expected": {
+      "m": [
+        [
+          "Nora",
+          "interest",
+          "ceramic"
+        ]
+      ],
+      "refs": {
+        "Nora": [
+          "duplicate_of",
+          902
+        ]
+      }
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Nora",
+          "category": "interest",
+          "value": "Enjoys ceramics",
+          "evidence": "Nora enjoys ceramics.",
+          "replaces_id": null,
+          "duplicate_of": 902
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 2.04
+  },
+  {
+    "number": 11,
+    "name": "Personal task with no person",
+    "text": "I need to renew my passport.",
+    "expected": {
+      "p": [
+        [
+          "task",
+          "passport"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "task",
+          "value": "Renew my passport tomorrow",
+          "evidence": "I need to renew my passport."
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 2.16
+  },
+  {
+    "number": 12,
+    "name": "Everyday imperative",
+    "text": "get water",
+    "expected": {
+      "p": [
+        [
+          "task",
+          "water"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "task",
+          "value": "Get water",
+          "evidence": "get water"
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.91
+  },
+  {
+    "number": 13,
+    "name": "Vague personal reminder",
+    "text": "look into that running plan",
+    "expected": {
+      "p": [
+        [
+          "reminder",
+          "running"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "reminder",
+          "value": "look into that running plan",
+          "evidence": "look into that running plan"
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.49
+  },
+  {
+    "number": 14,
+    "name": "Unnamed task after a named person",
+    "text": "Nora loves ceramics. Need to book that appointment.",
+    "expected": {
+      "m": [
+        [
+          "Nora",
+          "interest",
+          "ceramic"
+        ]
+      ],
+      "p": [
+        [
+          "task",
+          "appointment"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Nora",
+          "category": "interest",
+          "value": "Loves ceramics",
+          "evidence": "Nora loves ceramics",
+          "replaces_id": null,
+          "duplicate_of": null
+        },
+        {
+          "person": "Nora",
+          "category": "plan",
+          "value": "Need to book that appointment",
+          "evidence": "Need to book that appointment",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": false,
+    "issues": [
+      "memories: expected 1, got 2",
+      "personal: expected 1, got 0",
+      "personal: missing expected ('task', 'appointment')"
+    ],
+    "seconds": 2.51
+  },
+  {
+    "number": 15,
+    "name": "Relative deadline stays relative",
+    "text": "Submit the application by Friday.",
+    "expected": {
+      "p": [
+        [
+          "task",
+          "Friday"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "task",
+          "value": "Submit the application by Friday",
+          "evidence": "Submit the application by Friday"
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.69
+  },
+  {
+    "number": 16,
+    "name": "Personal recurring goal",
+    "text": "I want to run twice a week.",
+    "expected": {
+      "p": [
+        [
+          "goal",
+          "twice a week"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "goal",
+          "value": "Run twice a week",
+          "evidence": "I want to run twice a week."
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.63
+  },
+  {
+    "number": 17,
+    "name": "Promise involving a named person",
+    "text": "I promised Tavi I would send the recipe.",
+    "expected": {
+      "m": [
+        [
+          "Tavi",
+          "commitment",
+          "recipe"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Tavi",
+          "category": "commitment",
+          "value": "I promised Tavi I would send the recipe",
+          "evidence": "I promised Tavi I would send the recipe.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.74
+  },
+  {
+    "number": 18,
+    "name": "Completed personal action",
+    "text": "I renewed my passport.",
+    "expected": {
+      "c": [
+        "passport"
+      ]
+    },
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "task",
+          "value": "Renew my passport",
+          "evidence": "I renewed my passport."
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": false,
+    "issues": [
+      "personal: expected 0, got 1",
+      "completed_personal: expected 1, got 0",
+      "completed_personal: missing expected 'passport'"
+    ],
+    "seconds": 3.43
+  },
+  {
+    "number": 19,
+    "name": "Negated completion",
+    "text": "I haven't renewed my passport.",
+    "expected": {},
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "task",
+          "value": "Renew my passport",
+          "evidence": "I haven't renewed my passport."
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": false,
+    "issues": [
+      "personal: expected 0, got 1"
+    ],
+    "seconds": 1.7
+  },
+  {
+    "number": 20,
+    "name": "Uncertain completion",
+    "text": "I might have paid the electricity bill.",
+    "expected": {},
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "task",
+          "value": "Pay the electricity bill tomorrow",
+          "evidence": "I might have paid the electricity bill."
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": false,
+    "issues": [
+      "personal: expected 0, got 1"
+    ],
+    "seconds": 1.79
+  },
+  {
+    "number": 21,
+    "name": "Future action is not a completion",
+    "text": "I will pay the electricity bill tomorrow.",
+    "expected": {
+      "p": [
+        [
+          "task",
+          "tomorrow"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "task",
+          "value": "Pay the electricity bill tomorrow",
+          "evidence": "I will pay the electricity bill tomorrow."
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.3
+  },
+  {
+    "number": 22,
+    "name": "Another person completed an action",
+    "text": "Tavi renewed their passport.",
+    "expected": {
+      "m": [
+        [
+          "Tavi",
+          "context",
+          "passport"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Tavi",
+          "category": "context",
+          "value": "Renewed their passport",
+          "evidence": "Tavi renewed their passport.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 4.66
+  },
+  {
+    "number": 23,
+    "name": "Reflection without actionable details",
+    "text": "Today felt quiet. I was tired and wanted some room to breathe.",
+    "expected": {},
+    "result": {
+      "memories": [],
+      "personal": [
+        {
+          "category": "reminder",
+          "value": "wanted some room to breathe",
+          "evidence": "wanted some room to breathe"
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": false,
+    "issues": [
+      "personal: expected 0, got 1"
+    ],
+    "seconds": 1.76
+  },
+  {
+    "number": 24,
+    "name": "Bare name does not create a profile",
+    "text": "Tavi",
+    "expected": {},
+    "result": {
+      "memories": [],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.42
+  },
+  {
+    "number": 25,
+    "name": "Business and place do not become people",
+    "text": "I went to Apple in Boston today.",
+    "expected": {},
+    "result": {
+      "memories": [],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.3
+  },
+  {
+    "number": 26,
+    "name": "Co-occurrence does not imply a relationship",
+    "text": "Tavi likes chess. Ellis enjoys hiking.",
+    "expected": {
+      "m": [
+        [
+          "Tavi",
+          "interest",
+          "chess"
+        ],
+        [
+          "Ellis",
+          "interest",
+          "hiking"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Tavi",
+          "category": "interest",
+          "value": "Likes chess",
+          "evidence": "Tavi likes chess.",
+          "replaces_id": null,
+          "duplicate_of": null
+        },
+        {
+          "person": "Ellis",
+          "category": "interest",
+          "value": "Enjoys hiking",
+          "evidence": "Ellis enjoys hiking.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 2.35
+  },
+  {
+    "number": 27,
+    "name": "One-off wish is a plan, not a hobby",
+    "text": "Tavi wants to go to the mall.",
+    "expected": {
+      "m": [
+        [
+          "Tavi",
+          "plan",
+          "mall"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Tavi",
+          "category": "plan",
+          "value": "Wants to go to the mall",
+          "evidence": "Tavi wants to go to the mall.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 1.64
+  },
+  {
+    "number": 28,
+    "name": "Long entry preserves details across sections",
+    "text": "It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. It was a quiet walk, and I noticed the trees along the path. \n\nTavi loves chess.\n\nI spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. I spent the evening reflecting on the day. \n\nI need to renew my passport.",
+    "expected": {
+      "m": [
+        [
+          "Tavi",
+          "interest",
+          "chess"
+        ]
+      ],
+      "p": [
+        [
+          "task",
+          "passport"
+        ]
+      ]
+    },
+    "result": {
+      "memories": [
+        {
+          "person": "Tavi",
+          "category": "interest",
+          "value": "Loves chess",
+          "evidence": "Tavi loves chess.",
+          "replaces_id": null,
+          "duplicate_of": null
+        }
+      ],
+      "personal": [
+        {
+          "category": "task",
+          "value": "Renew my passport tomorrow",
+          "evidence": "I need to renew my passport."
+        }
+      ],
+      "completed_personal": []
+    },
+    "passed": true,
+    "issues": [],
+    "seconds": 5.22
+  }
+]
