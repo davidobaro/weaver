@@ -92,6 +92,7 @@ class ReviewInput(BaseModel):
 
 class SuggestionAction(BaseModel):
     status: Literal['done', 'dismissed', 'open']
+    stop_repeat: bool = False
 
 
 class AliasInput(BaseModel):

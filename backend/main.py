@@ -484,6 +484,8 @@ def acknowledge_reminders(device: UUID, token: UUID):
 @app.patch('/api/for-you/{suggestion_id}')
 def act_on_suggestion(suggestion_id: str, body: SuggestionAction, timezone: str = 'America/New_York', include_all_plans: bool = False):
     check_timezone(timezone)
+    if body.stop_repeat and body.status != 'dismissed':
+        raise HTTPException(422, 'Stopping and dismissing a repeat requires dismissed status.')
     with database() as db:
         db.execute('BEGIN IMMEDIATE')
         current = _suggestions(db, timezone, include_all_plans)
@@ -492,6 +494,17 @@ def act_on_suggestion(suggestion_id: str, body: SuggestionAction, timezone: str 
             raise HTTPException(409, 'This suggestion has changed. Refresh to see the latest.')
         for item in items:
             suggestion_id = item['id']
+            if body.stop_repeat:
+                if not item['repeat'] or item['past_occurrence'] or item['status'] != 'open':
+                    raise HTTPException(422, 'Choose an active repeating reminder to dismiss.')
+                base = item['base_id']
+                db.execute('DELETE FROM reminder_recurrence WHERE suggestion_id = ?', (base,))
+                db.execute('INSERT OR IGNORE INTO reminder_repeat_choices(suggestion_id) VALUES (?)', (base,))
+                db.execute('''INSERT INTO suggestion_timing(suggestion_id,due_date,due_overridden,snoozed_until) VALUES (?,?,1,NULL)
+                              ON CONFLICT(suggestion_id) DO UPDATE SET due_date=excluded.due_date,due_overridden=1,snoozed_until=NULL''',
+                           (base, item['due_start']))
+                db.execute("INSERT INTO suggestion_actions(suggestion_id,status) VALUES (?,'dismissed') ON CONFLICT(suggestion_id) DO UPDATE SET status='dismissed',updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')", (base,))
+                continue
             try:
                 if act_on_occurrence(db, item, body.status, current['today']):
                     continue

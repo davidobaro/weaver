@@ -242,3 +242,50 @@ def test_resaving_monthly_settings_preserves_original_month_end_anchor(client):
         rule = db.execute('SELECT * FROM reminder_recurrence').fetchone()
         assert rule['anchor_date'] == '2026-01-31'
         assert next_due(rule['next_due'], rule['anchor_date'], rule['frequency'], '2026-02-28') == '2026-03-31'
+
+
+def test_dismiss_repeat_stops_group_and_stays_off_after_restore_and_rediscovery(client):
+    from backend.auto_recurrence import discover_repeats
+    ids = [seed('I need to water the plants every Saturday', category=category) for category in ['task','reminder']]
+    assert len(current(client)['related_ids']) == 2
+    assert repeat(client, current(client), 'weekly', '2026-10-31').status_code == 200
+    with main.database() as db:
+        db.execute("UPDATE reminder_recurrence SET origin='writing'")
+    first = current(client)
+    assert len(first['related_ids']) == 2
+    assert act(client, first, 'done').status_code == 200
+    active = current(client)
+    due = active['due_start']
+    assert client.patch(f"/api/for-you/{active['id']}", json={'status':'dismissed','stop_repeat':True}).status_code == 200
+    stopped = current(client)
+    assert stopped['status'] == 'dismissed' and stopped['repeat'] is None
+    assert stopped['due_start'] == due
+    assert len(stopped['related_ids']) == 2
+    with main.database() as db:
+        assert db.execute('SELECT COUNT(*) FROM reminder_recurrence').fetchone()[0] == 0
+        assert db.execute('SELECT COUNT(*) FROM reminder_repeat_choices').fetchone()[0] == 2
+        for note_id in ids:
+            discover_repeats(db, main.note_or_404(db,note_id))
+    main.initialize()
+    assert current(client)['status'] == 'dismissed'
+    assert act(client, current(client), 'open').status_code == 200
+    restored = current(client)
+    assert restored['status'] == 'open' and restored['repeat'] is None
+    with main.database() as db:
+        for note_id in ids:
+            discover_repeats(db, main.note_or_404(db,note_id))
+        assert db.execute('SELECT COUNT(*) FROM reminder_recurrence').fetchone()[0] == 0
+    assert all(item['status']=='done' for item in feed(client) if item['past_occurrence'])
+    assert act(client, first, 'open').status_code == 200
+    assert current(client)['repeat'] is None
+
+
+def test_stop_repeat_rejects_nonrepeating_and_non_dismiss_actions(client):
+    seed()
+    item = current(client)
+    assert client.patch(f"/api/for-you/{item['id']}",json={'status':'dismissed','stop_repeat':True}).status_code == 422
+    repeat(client,item)
+    item=current(client)
+    for status in ['open','done']:
+        assert client.patch(f"/api/for-you/{item['id']}",json={'status':status,'stop_repeat':True}).status_code == 422
+    assert current(client)['repeat']=='daily'

@@ -63,6 +63,48 @@ def subject_hints(note):
     return [{'name': match[1], 'quote': match[1] + ' ' + match[2]} for match in SUBJECT_PATTERN.finditer(note) if match[1].casefold() not in NON_NAMES]
 
 
+ACTION_START = r'\b(?:renew|submit|pay|water|clean|wash|refill|return|collect|send|call|book|buy|get|check|review|read|write|walk|run|stretch|exercise|meditate|practice|study|take|feed|visit|meet|attend|charge|replace|do|look|pick)\b'
+ACTION_LEAD = r'(?:(?:then\s+)?(?:i\s+)?(?:(?:still\s+)?(?:need to|have to|will|should|must|want to|plan to)\s+)?)'
+ACTION_SEPARATOR = re.compile(r'(?:\s+(?:and|but|or)\s+|,\s*)(?=' + ACTION_LEAD + ACTION_START + ')', re.I)
+
+
+def action_clauses(text):
+    begin = 0
+    for match in ACTION_SEPARATOR.finditer(text):
+        yield begin, match.start()
+        begin = match.end()
+    yield begin, len(text)
+
+
+def personal_timing_context(note, item):
+    """Keep omitted timing visible without borrowing a neighbouring task's date."""
+    start = note.find(item.evidence)
+    left = max(note.rfind(mark, 0, start) for mark in ('.', '!', '?', '\n', ';')) + 1
+    end = re.search(r'[.!?\n;]', note[start:])
+    right = start + end.start() if end else len(note)
+    sentence = note[left:right]
+    # Split only at a clear new action, not object lists ("milk and bread")
+    # or date phrases ("October 30 and November 2").
+    spans = list(action_clauses(sentence))
+    words = lambda text: set(re.findall(r'\w+', text.casefold())) - CONTEXT_STOP
+    wanted = words(item.value)
+    evidence_end = start + len(item.evidence)
+    candidates = [(a, b) for a, b in spans if left + a < evidence_end and left + b > start]
+    if not candidates:
+        return item.evidence
+    a, b = max(candidates, key=lambda span: len(wanted & words(sentence[span[0]:span[1]])))
+    context = sentence[a:b]
+    # An explicit leading date scopes the coordinated intentions together:
+    # "Tomorrow I need to renew my passport and book a dentist appointment."
+    first_action = re.search(ACTION_START, sentence, re.I)
+    if a and first_action:
+        prefix = sentence[:first_action.start()]
+        anchor = date(2026, 1, 1)
+        if date_window(prefix, anchor, anchor):
+            context = prefix + ' ' + context
+    return context
+
+
 def validate_meaning(result: Extraction, note: str) -> None:
     """Retry clear role/timing mistakes rather than publish or silently drop them."""
     for item in result.completed_personal:
@@ -81,28 +123,26 @@ def validate_meaning(result: Extraction, note: str) -> None:
         if hint['name'].islower() and re.match(r'(?:moved in|started (?:college|school|university))\b', hint['quote'][len(hint['name']) + 1:], re.I):
             if not any(item.person.casefold() == hint['name'].casefold() for item in result.memories):
                 raise ExtractionValidationError('Check the omitted new-person update: ' + hint['quote'] + '. Include its source-backed context memory; known profiles are not an allowlist.')
-    for clause in re.finditer(r"(?:^|[.!?\n;])\s*((?:(?:i\s+)?(?:(?:still\s+)?need to|have to|will|should|must|want to|plan to)|remind me to|remember to)\s+([^.!?\n;]+))", note, re.I):
+    for clause in re.finditer(r"(?:^|[.!?\n;])\s*(?:for (?:myself|me),\s*)?((?:(?:i\s+)?(?:(?:still\s+)?need to|have to|will|should|must|want to|plan to)|remind me to|remember to)\s+([^.!?\n;]+))", note, re.I):
         action = clause[2].strip()
         if not re.match(r'(?:renew|submit|pay|water|clean|wash|refill|send|call|book|buy|get|check|review|read|write|walk|run|stretch|exercise|meditate|practice|study|take|feed|visit|meet|attend|charge|replace|do|look|pick)\b', action, re.I):
             continue
         if re.search(r"\b(?:maybe|might|not|never|space|peace|breathing room|feel|feeling)\b", action, re.I):
             continue
-        a, b = clause.span(1)
-        def covers(item):
-            start = note.find(item.evidence)
-            return max(a, start) < min(b, start + len(item.evidence))
-        if not any(covers(item) for item in [*result.personal, *result.memories]):
-            raise ExtractionValidationError('An explicit actionable intention was omitted: ' + clause[1] + '. Extract it with its exact source quote, timing and cadence; preserve named-person versus personal scope.')
+        for a, b in action_clauses(clause[2]):
+            a, b = clause.start(2) + a, clause.start(2) + b
+            def covers(item):
+                start = note.find(item.evidence)
+                return max(a, start) < min(b, start + len(item.evidence))
+            if not any(covers(item) for item in [*result.personal, *result.memories]):
+                raise ExtractionValidationError('An explicit actionable intention was omitted: ' + note[a:b] + '. Extract it with its exact source quote, timing and cadence; preserve named-person versus personal scope.')
     anchor = date(2026, 1, 1)  # Only compares whether supported timing was retained.
     for item in result.personal:
         actor = re.match(r"^([^\W\d_][\w’'\-]*)\s+(?:wants|needs|plans|hopes|will|renewed|paid)\b", item.evidence, re.I)
         if actor and actor[1].casefold() not in {'i', 'we'}:
             raise ExtractionValidationError('A named other person\'s intention belongs in memories under that '
                 'person, not personal. Preserve the named actor and the original source quote.')
-        start = note.find(item.evidence)
-        boundary = max(note.rfind(mark, 0, start) for mark in ('.', '!', '?', '\n', ';'))
-        end = re.search(r'[.!?\n;]', note[start:])
-        clause = note[boundary + 1:start + end.end() if end else len(note)]
+        clause = personal_timing_context(note, item)
         if date_window(clause, anchor, anchor) and not date_window(item.value, anchor, anchor):
             raise ExtractionValidationError('A personal item lost its stated deadline. Keep the source timing '
                 'and uncertainty in the value as well as the exact evidence quote.')

@@ -52,6 +52,78 @@ def test_compound_or_partial_evidence_still_requires_deadline_validation():
         inference.validate_meaning(result,text)
 
 
+@pytest.mark.parametrize('evidence', ['book a dentist appointment', 'For myself, I need to renew my driver’s license by October 30 and book a dentist appointment.'])
+def test_deadline_belongs_to_the_license_not_the_coordinated_dentist_task(evidence):
+    text = 'For myself, I need to renew my driver’s license by October 30 and book a dentist appointment.'
+    result = inference.parse_extraction(json.dumps({'memories': [], 'personal': [
+        {'category': 'task', 'value': 'renew my driver’s license by October 30', 'evidence': 'renew my driver’s license by October 30'},
+        {'category': 'task', 'value': 'book a dentist appointment', 'evidence': evidence},
+    ]}), text)
+    inference.validate_meaning(result, text)
+    assert result.personal[1].value == 'book a dentist appointment'
+
+
+@pytest.mark.parametrize('text,value,evidence', [
+    ('Book a dentist appointment and renew my passport tomorrow.', 'Book a dentist appointment', 'Book a dentist appointment'),
+    ('Renew my passport tomorrow, book a dentist appointment.', 'book a dentist appointment', 'book a dentist appointment'),
+    ('Renew my passport tomorrow but I need to book a dentist appointment.', 'book a dentist appointment', 'book a dentist appointment'),
+])
+def test_other_action_deadlines_do_not_leak_backwards_or_across_a_list(text, value, evidence):
+    result = inference.parse_extraction(json.dumps({'memories': [], 'personal': [{'category': 'task', 'value': value, 'evidence': evidence}]}), text)
+    inference.validate_meaning(result, text)
+
+
+@pytest.mark.parametrize('text,value,evidence', [
+    ('Renew my passport tomorrow and book a dentist appointment on Friday.', 'book a dentist appointment', 'book a dentist appointment'),
+    ('Tomorrow I need to renew my passport and book a dentist appointment.', 'book a dentist appointment', 'book a dentist appointment'),
+    ('I need to buy milk and bread tomorrow.', 'buy milk and bread', 'buy milk and bread'),
+])
+def test_scoped_deadlines_still_cannot_be_omitted(text, value, evidence):
+    result = inference.parse_extraction(json.dumps({'memories': [], 'personal': [{'category': 'task', 'value': value, 'evidence': evidence}]}), text)
+    with pytest.raises(inference.ExtractionValidationError, match='deadline'):
+        inference.validate_meaning(result, text)
+
+
+@pytest.mark.parametrize('omit_dentist_first', [False, True])
+def test_compound_tasks_publish_with_scoped_dates_and_retry_only_real_omissions(monkeypatch, client, omit_dentist_first):
+    import httpx
+    real_client = httpx.Client
+    calls = []
+    text = 'I need to renew my passport tomorrow and book a dentist appointment.'
+    def respond(request):
+        calls.append(request)
+        payload = {'memories': [], 'personal': [
+            {'category': 'task', 'value': 'renew my passport tomorrow', 'evidence': 'renew my passport tomorrow'},
+            {'category': 'task', 'value': 'book a dentist appointment', 'evidence': 'book a dentist appointment'},
+        ]}
+        if omit_dentist_first and len(calls) == 1:
+            payload['personal'] = payload['personal'][:1]
+        return httpx.Response(200, json={'choices': [{'finish_reason': 'stop', 'message': {'content': json.dumps(payload)}}]})
+    monkeypatch.setenv('NEBIUS_API_KEY', 'test')
+    monkeypatch.setattr(inference.httpx, 'Client', lambda **kwargs: real_client(transport=httpx.MockTransport(respond), **kwargs))
+    note = client.post('/api/notes', json={'text': text, 'kind': 'journal', 'entry_date': '2026-10-27'}).json()
+    main.app.state.worker.submit(lambda: None).result(timeout=3)
+    saved = next(row for row in client.get('/api/state').json()['notes'] if row['id'] == note['id'])
+    assert saved['status'] == 'organized'
+    items = client.get('/api/for-you').json()['suggestions']
+    passport = next(item for item in items if 'passport' in item['sources'][0]['value'])
+    dentist = next(item for item in items if 'dentist' in item['sources'][0]['value'])
+    assert passport['due_start'] == '2026-10-28'
+    assert dentist['due_start'] is None
+    assert len(calls) == (2 if omit_dentist_first else 1)
+    if omit_dentist_first:
+        assert 'omitted: book a dentist appointment' in json.loads(calls[1].content)['messages'][0]['content']
+
+
+def test_license_task_cannot_hide_an_omitted_coordinated_dentist_task():
+    text = 'For myself, I need to renew my driver’s license by October 30 and book a dentist appointment.'
+    result = inference.parse_extraction(json.dumps({'memories': [], 'personal': [
+        {'category': 'task', 'value': 'renew my driver’s license by October 30', 'evidence': 'I need to renew my driver’s license by October 30'},
+    ]}), text)
+    with pytest.raises(inference.ExtractionValidationError, match='omitted: book a dentist appointment'):
+        inference.validate_meaning(result, text)
+
+
 def test_existing_profile_context_keeps_relevant_corrections_without_entire_history():
     people=[{'id':1,'name':'Maya','aliases':['May','M'],'memories':[
         {'id':1,'category':'birthday','value':'Birthday April 8'},

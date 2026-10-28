@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowRight, CalendarDays, Check, ChevronDown, Clock3, Flower2, Link2, LoaderCircle, MessageCircle, Repeat2, RotateCcw, X } from 'lucide-react'
+import { ArrowRight, CalendarDays, Check, ChevronDown, Clock3, Flower2, Link2, LoaderCircle, MessageCircle, Repeat2, RotateCcw, SkipForward, X } from 'lucide-react'
 import { api } from './api'
 
 type Source = { id: number; person_id: number | null; person: string; note_id: number; note_revision?: number; category: string; value: string; evidence: string; edited: number }
@@ -71,16 +71,17 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
     window.addEventListener('storage', stored)
     return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener('focus', refresh); window.removeEventListener(changeEvent, changed); window.removeEventListener('storage', stored) }
   }, [revision, query, instance])
-  const act = async (item: Suggestion, nextStatus: Suggestion['status']) => {
+  const act = async (item: Suggestion, nextStatus: Suggestion['status'], stopRepeat = false) => {
     setBusy(true); setError('')
     try {
-      await api(`/for-you/${item.id}?timezone=${encodeURIComponent(timezone)}${personId ? '&include_all_plans=true' : ''}`, 'PATCH', { status: nextStatus })
+      await api(`/for-you/${item.id}?timezone=${encodeURIComponent(timezone)}${personId ? '&include_all_plans=true' : ''}`, 'PATCH', { status: nextStatus, ...(stopRepeat ? {stop_repeat: true} : {}) })
       await load()
       announceChange()
-      setStatus(item.repeat && !item.past_occurrence && nextStatus !== 'open' ? nextStatus === 'done' ? 'Marked done. Next occurrence scheduled.' : 'Occurrence skipped. Next date scheduled.' : nextStatus === 'done' ? 'Marked done.' : nextStatus === 'dismissed' ? 'Suggestion dismissed.' : 'Suggestion restored.')
+      setStatus(stopRepeat ? 'Repeating reminder dismissed. Repeat turned off.' : item.repeat && !item.past_occurrence && nextStatus !== 'open' ? nextStatus === 'done' ? 'Marked done. Next occurrence scheduled.' : 'Occurrence skipped. Next date scheduled.' : nextStatus === 'done' ? 'Marked done.' : nextStatus === 'dismissed' ? 'Suggestion dismissed.' : 'Suggestion restored.')
     } catch (err) { setError((err as Error).message) }
     finally { setBusy(false) }
   }
+  const dismiss = (item: Suggestion) => act(item, 'dismissed', !!item.repeat && !item.past_occurrence)
   const saveTiming = async (item: Suggestion, patch: TimingPatch | RepeatPatch) => {
     await api(`/for-you/${item.id}/${'frequency' in patch ? 'repeat' : 'timing'}?timezone=${encodeURIComponent(timezone)}`, 'PATCH', patch)
     await load()
@@ -123,7 +124,7 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
           <h4 className={`task-group-label ${itemIndex > 0 && bucket(visible[itemIndex - 1]) === bucket(item) ? 'task-group-continuation' : ''}`}>{['Date passed', 'Upcoming', 'Anytime'][bucket(item)]}</h4>
           <article className="profile-task-row">
             <div className="profile-task-writing"><p tabIndex={0}>{item.sources[0].value}</p><div className="profile-task-meta">{due && <span>{due}</span>}{item.repeat ? <span className="repeat-label"><Repeat2 size={10} /> {item.past_occurrence ? 'Past occurrence' : item.repeat}</span> : item.scope === 'personal' && <span>{item.category}</span>}<button className="source-link" onClick={() => onSource(item.sources[0].note_id, item.sources[0].note_revision)}>Source <ArrowRight size={10} /></button></div></div>
-            <div className="profile-task-actions">{timingControls(item)}<button className="icon-button" aria-label={`Mark done: ${item.sources[0].value}`} title="Mark done" disabled={busy} onClick={() => act(item, 'done')}><Check size={14} /></button><button className="icon-button" aria-label={`${item.repeat ? 'Skip occurrence' : 'Dismiss'}: ${item.sources[0].value}`} title={item.repeat ? 'Skip occurrence' : 'Dismiss'} disabled={busy} onClick={() => act(item, 'dismissed')}><X size={14} /></button></div>
+            <div className="profile-task-actions">{timingControls(item)}<button className="icon-button" aria-label={`Mark done: ${item.sources[0].value}`} title="Mark done" disabled={busy} onClick={() => act(item, 'done')}><Check size={14} /></button><button className="icon-button" aria-label={`${item.repeat && !item.past_occurrence ? 'Dismiss repeating reminder' : 'Dismiss'}: ${item.sources[0].value}`} title={item.repeat && !item.past_occurrence ? 'Dismiss and stop repeating' : 'Dismiss'} disabled={busy} onClick={() => dismiss(item)}><X size={14} /></button></div>
           </article>
         </div>
         return <article key={item.id} className="suggestion-card">
@@ -133,7 +134,15 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
           <div className="suggestion-facts">{(item.kind === 'connection' ? item.sources : item.sources.slice(0, 1)).map((source, index) => <p key={`${source.id}-${index}`}>{item.kind === 'connection' && <strong>{source.person}: </strong>}{source.value}</p>)}</div>
           <p className="suggestion-why">{item.why}</p>
           <details className="suggestion-sources"><summary>Why this appeared <ChevronDown size={13} /></summary>{item.sources.map((source, index) => <div key={`${source.id}-${index}`}>{source.person_id !== null ? <button className="source-link" onClick={() => onPerson(source.person_id!)}>{source.person}</button> : <span className="source-link">From your writing</span>}<blockquote>“{source.evidence}”</blockquote><button className="source-link" onClick={() => onSource(source.note_id, source.note_revision)}>Read source note <ArrowRight size={12} /></button>{!!source.edited && <span className="edited-label">Memory edited by you</span>}</div>)}</details>
-          <div className="suggestion-actions"><button className="small-button" disabled={busy} onClick={() => act(item, 'done')}><Check size={13} /> Mark done</button><button className="text-button" disabled={busy} onClick={() => act(item, 'dismissed')}><X size={13} /> {item.repeat ? 'Skip' : 'Dismiss'}</button><span className="suggestion-timing-actions">{timingControls(item)}</span></div>
+          <div className="suggestion-actions"><button className="small-button" disabled={busy} onClick={() => act(item, 'done')}><Check size={13} /> Mark done</button><ActionDropdown label={item.sources[0].value} disabled={busy}>
+            {item.can_schedule && <>
+              <button type="button" onClick={() => setEditing({item, mode: 'due'})}><CalendarDays size={14} /> Set due date</button>
+              <button type="button" onClick={() => setEditing({item, mode: 'repeat'})}><Repeat2 size={14} /> {item.repeat ? 'Change repeat' : 'Set repeat'}</button>
+              <button type="button" onClick={() => setEditing({item, mode: 'snooze'})}><Clock3 size={14} /> Snooze</button>
+            </>}
+            {item.repeat && !item.past_occurrence && <button type="button" onClick={() => act(item, 'dismissed')}><SkipForward size={14} /> Skip once</button>}
+            <button type="button" className="dropdown-dismiss" onClick={() => dismiss(item)}><X size={14} /> {item.repeat && !item.past_occurrence ? 'Dismiss repeat' : 'Dismiss'}</button>
+          </ActionDropdown></div>
         </article>
       })}</div>
       {!compact && !profile && shown.length > limit && <button className="text-button feed-more" onClick={() => setLimit(value => value + 6)}>Show more <ChevronDown size={14} /></button>}
@@ -175,4 +184,30 @@ function TimingEditor({item, mode, today, onClose, onSave}: {item: Suggestion; m
       <div className="timing-footer">{mode === 'due' && !item.repeat && item.due_date_overridden && <button className="text-button" type="button" disabled={saving} onClick={() => save({reset_due_date: true})}>Use date from writing</button>}<button className="primary" disabled={saving || mode === 'snooze' && !value}>{saving ? 'Saving…' : mode === 'repeat' ? 'Save repeat' : mode === 'due' ? 'Save date' : 'Snooze'}</button></div>
     </form>
   </dialog>, document.body)
+}
+
+function ActionDropdown({label, disabled, children}: {label: string; disabled: boolean; children: React.ReactNode}) {
+  const details = useRef<HTMLDetailsElement>(null)
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    if (!open) return
+    const close = (event: PointerEvent) => {
+      if (!details.current?.contains(event.target as Node)) details.current?.removeAttribute('open')
+    }
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        details.current?.removeAttribute('open')
+        details.current?.querySelector('summary')?.focus()
+      }
+    }
+    document.addEventListener('pointerdown', close)
+    document.addEventListener('keydown', escape)
+    return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', escape) }
+  }, [open])
+  return <details className="action-dropdown" ref={details} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary aria-label={`More options: ${label}`} aria-disabled={disabled} onClick={event => { if (disabled) event.preventDefault() }}>More <ChevronDown size={13} /></summary>
+    <div className="action-dropdown-panel" onClick={event => { if ((event.target as Element).closest('button')) details.current?.removeAttribute('open') }}>
+      {children}
+    </div>
+  </details>
 }

@@ -361,3 +361,18 @@ main.notes-page { max-width: 1440px; }
 main.notes-page { padding-top: 64px; }
 .notes-heading.journal-heading { margin-bottom: 80px; }
 @media (max-width: 680px) { main.notes-page { padding-top: 44px; } .notes-heading.journal-heading { margin-bottom: 60px; } }
+
+/* Small, inline activity cues; the existing reduced-motion rule stops spinning. */
+.organizing-status{display:inline-flex;align-items:center;gap:6px}
+.organizing-status svg{flex-shrink:0}
+
+.action-dropdown{position:relative;margin-left:auto;font-size:11px}
+.action-dropdown summary{display:flex;align-items:center;gap:5px;list-style:none;cursor:pointer;color:#7c8e6c;padding:8px 5px;white-space:nowrap;border-radius:4px}
+.action-dropdown summary::-webkit-details-marker{display:none}
+.action-dropdown summary:hover{background:#f0f3e9;color:#3b553f}
+.action-dropdown summary:focus-visible{outline:2px solid #839276;outline-offset:3px}
+.action-dropdown summary[aria-disabled=true]{opacity:.5;cursor:default}
+.action-dropdown-panel{position:absolute;right:0;bottom:calc(100% + 5px);z-index:4;min-width:185px;padding:5px;background:#fffefa;border:1px solid var(--border);border-radius:7px;box-shadow:0 6px 24px #2733221a}
+.action-dropdown-panel button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;text-align:left;padding:10px;border-radius:4px;color:#627454;font:inherit;white-space:nowrap;cursor:pointer}
+.action-dropdown-panel button:hover,.action-dropdown-panel button:focus-visible{background:#edf1e5;color:#3b553f}
+.action-dropdown-panel .dropdown-dismiss{border-top:1px solid var(--border);border-radius:0;margin-top:3px;padding-top:12px}
