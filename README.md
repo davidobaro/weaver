@@ -139,14 +139,14 @@ Identity resolution is local and uses confirmed names/aliases. Nemotron must ret
 
 ## Journal and quick notes
 
-The **Journal** workspace has two writing modes in one shared flow:
+The **Journal** workspace opens directly into a journal entry. Quick capture is secondary:
 
-- **Quick note:** capture a passing thought or conversation.
 - **Journal entry:** a larger writing space, an optional title, and a chosen entry date. New entries and edits support up to 5,000 characters and preserve paragraph breaks. Both writing modes show a live character counter; over-limit drafts remain intact, with saving disabled until shortened or split. Existing saved entries and their history are preserved.
+- **Quick note:** the small button in the journal editor’s toolbar opens a popup. Capture a passing thought without replacing the journal editor. Closing the popup preserves its draft.
 
 Both save immediately to the existing local database and organize in the background. Titles are included as context for extracting source-backed memories. A reflection without named people remains a complete saved entry; it does not need a profile or suggestion to be valuable. The original notes remain available as quick notes after the schema migration.
 
-Drafts are saved in this browser's local storage on this device and restored after refreshing. The draft indicator reports when browser storage is unavailable. Saving an entry clears its draft after the server acknowledges it. Unsubmitted drafts are not included in the database export. Entries and relevant memories are sent to Nebius for inference when submitted, as with the original note flow; opening or drafting an entry does not call the model.
+Journal and quick-note drafts are saved separately in this browser's local storage on this device and restored after refreshing. Saving or closing one does not alter the other. Existing shared drafts migrate to their original journal or quick-note surface. The draft indicator reports when browser storage is unavailable. Saving an entry clears its draft after the server acknowledges it. Unsubmitted drafts are not included in the database export. Entries and relevant memories are sent to Nebius for inference when submitted, as with the original note flow; opening or drafting an entry does not call the model.
 
 The entries list can be filtered by Notes/Journal and searched by title or text. Open an entry to read its full text. People, About, aliases, and For you use the same underlying memories. For a backdated journal entry, relative date phrases use its chosen entry date rather than the later capture date. This is a plain-text first version; saved entries support editing and version history. Rich-text formatting is not implemented yet.
 

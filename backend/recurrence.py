@@ -34,14 +34,14 @@ def apply_recurrence(db, items, today):
     result = []
     for original in items:
         base_id = original['id']
-        original.update(base_id=base_id, repeat=None, past_occurrence=False)
+        original.update(base_id=base_id, repeat=None, repeat_origin=None, past_occurrence=False)
         rule = rules.get(base_id)
         if rule and original['can_schedule']:
-            original.update(id=occurrence_id(base_id, rule['occurrence_key']), repeat=rule['frequency'],
+            original.update(id=occurrence_id(base_id, rule['occurrence_key']), repeat=rule['frequency'], repeat_origin=rule['origin'],
                             due_start=rule['next_due'], due_end=rule['next_due'], status='open',
                             due_date_overridden=True, kind='date', rank=2,
                             overdue=rule['next_due'] < today.isoformat(),
-                            why='Repeats ' + rule['frequency'] + '. Mark done or skip to schedule the next occurrence.')
+                            why=('Your writing sets a ' + rule['frequency'] + ' repeat.' if rule['origin'] == 'writing' else 'Repeats ' + rule['frequency'] + '.') + ' Mark done or skip to schedule the next occurrence.')
             original.pop('completion', None)
             original['snoozed'] = bool(original['snoozed_until'] and original['snoozed_until'] > today.isoformat())
         result.append(original)

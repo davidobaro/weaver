@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import ForYou from './ForYou'
 import Notifications from './Notifications'
 import WorkspaceSearch from './WorkspaceSearch'
+import QuickNote from './QuickNote'
+import { journalDraftKey, readWritingDrafts } from './writingDrafts'
 import EntryReader from './EntryReader'
 import EntryLimit, { ENTRY_CHARACTER_LIMIT, entryLength } from './EntryLimit'
 import Wordmark from './Wordmark'
@@ -30,22 +32,16 @@ const samples = [
 ]
 const normalize = (name: string) => name.trim().replace(/\s+/g, ' ').toLocaleLowerCase()
 
-const draftKey = 'weaver-writing-draft-v1'
 const localToday = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}` }
-function readDraft(): { text: string; title: string; kind: EntryKind; entryDate: string } {
-  try {
-    const draft = JSON.parse(localStorage.getItem(draftKey) || '{}')
-    return { text: typeof draft.text === 'string' ? draft.text : '', title: typeof draft.title === 'string' ? draft.title : '', kind: draft.kind === 'journal' ? 'journal' : 'note', entryDate: /^\d{4}-\d{2}-\d{2}$/.test(draft.entryDate || '') ? draft.entryDate : localToday() }
-  } catch { return { text: '', title: '', kind: 'note', entryDate: localToday() } }
-}
 
 export default function App() {
   const [data, setData] = useState<State | null>(null)
   const [view, setView] = useState<'notes' | 'people' | 'for-you'>(() => window.location.hash === '#for-you' ? 'for-you' : window.location.hash === '#people' ? 'people' : 'notes')
-  const [initialDraft] = useState(readDraft)
+  const [initialDrafts] = useState(() => readWritingDrafts(localToday()))
+  const initialDraft = initialDrafts.journal
+  const [quickDraft, setQuickDraft] = useState(initialDrafts.quick)
   const [text, setText] = useState(initialDraft.text)
   const [title, setTitle] = useState(initialDraft.title)
-  const [kind, setKind] = useState<EntryKind>(initialDraft.kind)
   const [entryDate, setEntryDate] = useState(initialDraft.entryDate)
   const [entryFilter, setEntryFilter] = useState<'all' | EntryKind>('all')
   const [entrySearch, setEntrySearch] = useState('')
@@ -63,10 +59,10 @@ export default function App() {
 
   useEffect(() => {
     try {
-      if (text || title) { localStorage.setItem(draftKey, JSON.stringify({text, title, kind, entryDate})); setDraftStored(true) }
-      else { localStorage.removeItem(draftKey); setDraftStored(false) }
+      if (text || title) { localStorage.setItem(journalDraftKey, JSON.stringify({text, title, entryDate})); setDraftStored(true) }
+      else { localStorage.removeItem(journalDraftKey); setDraftStored(false) }
     } catch { setDraftStored(false) }
-  }, [text, title, kind, entryDate])
+  }, [text, title, entryDate])
 
   useEffect(() => { window.history.replaceState(null, '', `#${view}`) }, [view])
   const refresh = async () => { const state = await api<State>('/state'); setData(state); return state }
@@ -109,10 +105,10 @@ export default function App() {
     if (!note && entryLength(text) > ENTRY_CHARACTER_LIMIT) return
     setBusy(true); setError(''); setNotice('')
     try {
-      await api<Note>(note ? `/notes/${note.id}/organize` : '/notes', 'POST', note ? undefined : { text, kind, title, entry_date: kind === 'journal' ? entryDate : null })
+      await api<Note>(note ? `/notes/${note.id}/organize` : '/notes', 'POST', note ? undefined : { text, kind: 'journal', title, entry_date: entryDate })
       if (!note) { setText(''); setTitle('') }
       setReviewNote(null)
-      setNotice(note ? 'Entry saved. Weaver will take it from here.' : kind === 'journal' ? 'Journal entry saved.' : 'Note saved.')
+      setNotice(note ? 'Entry saved. Weaver will take it from here.' : 'Journal entry saved.')
     } catch (err) {
       setError((err as Error).message)
       if (!note && err instanceof ApiError && err.noteId) setText('')
@@ -166,7 +162,7 @@ export default function App() {
     <div className="main-shell">
       <header className="topbar"><div>Personal workspace{view === 'people' && <><span>/</span><strong>People</strong></>}</div><div className="topbar-actions"><WorkspaceSearch revision={data} onSource={openSource} onPerson={id => { setPersonId(id); setView('people') }} /><Notifications revision={data} onOpen={() => setView('for-you')} /><span className="connection"><i className={data?.inference_configured ? '' : 'offline'} />{data?.inference_configured ? 'Nebius connected' : 'Checking connection'}</span></div></header>
       <main className={view === 'notes' ? 'notes-page' : view === 'for-you' ? 'for-you-page' : undefined}>
-        {view === 'for-you' ? <div className="page-heading notes-heading"><div><h1>For you</h1><p className="subtitle">A few things worth a little attention.</p></div></div> : view === 'notes' ? <div className="page-heading notes-heading"><div><h1>A place for your days.</h1><p className="subtitle">A quick thought or a longer story. Make room for both.</p></div></div> : <div className="page-heading"><div><p className="eyebrow">A LITTLE ATTENTION GOES A LONG WAY</p><h1>The people in your world.</h1><p className="subtitle">The things that make them, them. Kept together, with care.</p></div><span className="edition">YOUR PERSONAL MEMORY</span></div>}
+        {view === 'for-you' ? <div className="page-heading notes-heading"><div><h1>For you</h1><p className="subtitle">A few things worth a little attention.</p></div></div> : view === 'notes' ? null : <div className="page-heading"><div><p className="eyebrow">A LITTLE ATTENTION GOES A LONG WAY</p><h1>The people in your world.</h1><p className="subtitle">The things that make them, them. Kept together, with care.</p></div><span className="edition">YOUR PERSONAL MEMORY</span></div>}
 
         {error && <div className="alert error" role="alert"><span>{error}</span><button aria-label="Dismiss error" onClick={() => setError('')}><X size={17} /></button></div>}
         {notice && <div className="alert success" role="status"><Check size={18} /><span>{notice}</span><button aria-label="Dismiss notification" onClick={() => setNotice('')}><X size={17} /></button></div>}
@@ -175,6 +171,7 @@ export default function App() {
         {data && view === 'for-you' && <ForYou revision={data} onSource={openSource} onPerson={id => { setPersonId(id); setView('people') }} onAddNote={() => { setView('notes'); setReviewNote(null) }} />}
 
         {data && view === 'notes' && <div className="notes-layout"><section className="notes-main">
+          <div className="page-heading notes-heading journal-heading"><div><h1>A place for your days.</h1><p className="subtitle">A quick thought or a longer story. Make room for both.</p></div></div>
           {reviewNote ? <section className="card review-card">
             <div className="card-heading"><span className="section-icon"><Sparkles size={19} /></span><div><h2>A few things worth remembering</h2><p>Check each detail. Edit it, skip it, or make it part of your memory.</p></div></div>
             <button className="source-link review-source" onClick={() => setSource(reviewNote)}><FileText size={14} /> Read original note <ArrowUpRight size={13} /></button>
@@ -191,12 +188,12 @@ export default function App() {
             })}</div>
             <datalist id="people-names">{data.people.map(p => <option key={p.id} value={p.name} />)}</datalist>
             <div className="review-actions"><button className="text-button" disabled={busy} onClick={() => setReviewNote(null)}><ChevronLeft size={15} /> Review later</button><button className="primary" disabled={busy || chosen.some(d => !d.person.trim() || !d.value.trim())} onClick={save}>{busy ? <LoaderCircle className="spin" size={16} /> : <Check size={16} />}{chosen.length ? `Save ${chosen.length} ${chosen.length === 1 ? 'memory' : 'memories'}` : 'Finish without saving'}</button></div>
-          </section> : <section className={`card composer writing-composer ${kind === 'journal' ? 'journal-composer' : ''}`} aria-label="Writing space">
-            <div className="writing-toolbar"><div className="writing-modes" role="group" aria-label="Writing mode"><button aria-pressed={kind === 'note'} disabled={busy} onClick={() => setKind('note')}>Quick note</button><button aria-pressed={kind === 'journal'} disabled={busy} onClick={() => setKind('journal')}>Journal entry</button></div>{kind === 'journal' && <label className="entry-date-label"><span className="sr-only">Entry date</span><input aria-label="Entry date" type="date" value={entryDate} disabled={busy} onChange={event => setEntryDate(event.target.value)} /></label>}</div>
-            {kind === 'journal' && <><label className="sr-only" htmlFor="entry-title">Entry title</label><input className="entry-title" id="entry-title" maxLength={180} value={title} disabled={busy} onChange={event => setTitle(event.target.value)} placeholder="Give today a title, if you like…" /></>}
-            <label className="sr-only" htmlFor="note-text">{kind === 'journal' ? 'Your journal entry' : 'Your note'}</label><textarea id="note-text" aria-describedby="new-entry-limit" aria-invalid={entryLength(text) > ENTRY_CHARACTER_LIMIT} value={text} disabled={busy} onChange={event => setText(event.target.value)} placeholder={kind === 'journal' ? 'What’s on your mind?\n\nStart anywhere. The small moments count, too.' : 'What would you like to remember?'} />
+          </section> : <section className="card composer writing-composer journal-composer" aria-label="Writing space">
+            <div className="writing-toolbar"><span className="journal-writing-label"><BookOpen size={14} /> Journal entry</span><div className="journal-toolbar-actions"><label className="entry-date-label"><span className="sr-only">Entry date</span><input aria-label="Entry date" type="date" value={entryDate} disabled={busy} onChange={event => setEntryDate(event.target.value)} /></label><QuickNote draft={quickDraft} onChange={setQuickDraft} onSaved={() => { setNotice('Note saved. Weaver will take it from here.'); void refresh().catch(err => setError(err.message)) }} /></div></div>
+            <label className="sr-only" htmlFor="entry-title">Entry title</label><input className="entry-title" id="entry-title" maxLength={180} value={title} disabled={busy} onChange={event => setTitle(event.target.value)} placeholder="Give today a title, if you like…" />
+            <label className="sr-only" htmlFor="note-text">Your journal entry</label><textarea id="note-text" aria-describedby="new-entry-limit" aria-invalid={entryLength(text) > ENTRY_CHARACTER_LIMIT} value={text} disabled={busy} onChange={event => setText(event.target.value)} placeholder={'What’s on your mind?\n\nStart anywhere. The small moments count, too.'} />
             <EntryLimit text={text} id="new-entry-limit" />
-            <div className="composer-footer"><span className="draft-indicator" role="status">{text || title ? draftStored ? 'Draft saved on this device' : 'Draft not backed up — keep this page open' : ''}</span><button className="primary" disabled={busy || !text.trim() || entryLength(text) > ENTRY_CHARACTER_LIMIT || kind === 'journal' && !entryDate} onClick={() => extract()}>{busy ? <><LoaderCircle size={16} className="spin" /> Saving…</> : <>{kind === 'journal' ? 'Save entry' : 'Save note'} <ArrowRight size={16} /></>}</button></div>
+            <div className="composer-footer"><span className="draft-indicator" role="status">{text || title ? draftStored ? 'Draft saved on this device' : 'Draft not backed up — keep this page open' : ''}</span><button className="primary" disabled={busy || !text.trim() || entryLength(text) > ENTRY_CHARACTER_LIMIT || !entryDate} onClick={() => extract()}>{busy ? <><LoaderCircle size={16} className="spin" /> Saving…</> : <>Save entry <ArrowRight size={16} /></>}</button></div>
           </section>}
 
 

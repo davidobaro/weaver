@@ -115,9 +115,11 @@ def carry_actions(db, before, after, prefer_current=False):
             db.execute(f'''{insert} INTO suggestion_timing(suggestion_id,due_date,due_overridden,snoozed_until)
                           SELECT ?,due_date,due_overridden,snoozed_until FROM suggestion_timing WHERE suggestion_id=?''',
                        (new_base, old_base))
-            db.execute(f'''{insert} INTO reminder_recurrence(suggestion_id,frequency,anchor_date,next_due,occurrence_key)
-                          SELECT ?,frequency,anchor_date,next_due,occurrence_key FROM reminder_recurrence WHERE suggestion_id=?''',
+            db.execute(f'''{insert} INTO reminder_recurrence(suggestion_id,frequency,anchor_date,next_due,occurrence_key,origin)
+                          SELECT ?,frequency,anchor_date,next_due,occurrence_key,origin FROM reminder_recurrence WHERE suggestion_id=?''',
                        (new_base, old_base))
+            db.execute(f'''{insert} INTO reminder_repeat_choices(suggestion_id)
+                          SELECT ? FROM reminder_repeat_choices WHERE suggestion_id=?''', (new_base, old_base))
             db.execute(f'''{insert} INTO reminder_occurrences(suggestion_id,occurrence_key,due_date,frequency,status)
                           SELECT ?,occurrence_key,due_date,frequency,status FROM reminder_occurrences WHERE suggestion_id=?''',
                        (new_base, old_base))

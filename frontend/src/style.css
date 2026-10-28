@@ -143,7 +143,7 @@ main.for-you-page { max-width: 960px; padding-top: 38px; padding-bottom: 50px; }
 .entry-date-label input { border: 0; background: transparent; color: #98a489; font-size: 10px; padding: 4px 0; max-width: 130px; }
 .entry-title { display: block; width: 100%; padding: 10px 2px 17px; background: transparent; border: 0; font: 26px/1.4 var(--serif); letter-spacing: -.5px; color: #657c52; }
 .entry-title::placeholder { color: #b0b7a4; }
-.notes-page .journal-composer > textarea { min-height: 330px; max-height: 900px; font: 17px/2 var(--serif); padding: 6px 2px 18px; }
+.notes-page .journal-composer > textarea { min-height: 220px; max-height: 900px; font: 17px/2 var(--serif); padding: 6px 2px 18px; }
 .notes-page .journal-composer > textarea::placeholder { color: #a7b098; }
 .notes-page .writing-composer .composer-footer { justify-content: space-between; gap: 15px; }
 .draft-indicator { font-size: 9px; color: #a1ad92; line-height: 1.7; }
@@ -164,7 +164,7 @@ main.for-you-page { max-width: 960px; padding-top: 38px; padding-bottom: 50px; }
   .writing-modes button { padding: 6px 8px; font-size: 9px; }
   .entry-date-label input { font-size: 9px; max-width: 113px; }
   .entry-title { font-size: 23px; }
-  .notes-page .journal-composer > textarea { min-height: 300px; font-size: 16px; }
+  .notes-page .journal-composer > textarea { min-height: 200px; font-size: 16px; }
   .draft-indicator { max-width: 150px; font-size: 8px; }
   .entry-filters button { padding: 7px 9px; font-size: 9px; }
   .entry-search input { font-size: 10px; width: 110px; }
@@ -336,3 +336,28 @@ main.notes-page { max-width: 1440px; }
 .search-show-more { margin: 17px auto 5px; display: block; }
 .workspace-search-limit { color: #929c86; font-size: 11px; text-align: center; padding: 16px 0; }
 @media (max-width: 680px) { .workspace-search-trigger span { display: none; } .workspace-search-trigger { padding: 6px; } .workspace-search-dialog { padding: 20px; max-height: calc(100dvh - 24px); } .workspace-search-filters { gap: 3px; } .workspace-search-filters button { padding: 6px 7px; font-size: 10px; } }
+
+/* Journal first; passing thoughts get a separate, quiet capture dialog. */
+.journal-writing-label { display: inline-flex; align-items: center; gap: 7px; color: #788d65; font-size: 11px; }
+.quick-note-trigger { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #dde4d2; border-radius: 5px; padding: 7px 10px; background: transparent; color: #7d8f6d; font-size: 10px; white-space: nowrap; }
+.quick-note-trigger:hover { background: #edf1e5; color: #526b42; }
+.quick-note-dialog { width: 490px; max-width: calc(100% - 32px); max-height: calc(100dvh - 40px); overflow: auto; padding: 26px; border: 1px solid #dce3d4; border-radius: 10px; background: #fffefa; color: #30382f; box-shadow: 0 20px 80px #1b291433; }
+.quick-note-dialog::backdrop { background: #27332266; backdrop-filter: blur(3px); }
+.quick-note-dialog .modal-heading { margin-bottom: 12px; }
+.quick-note-dialog h2 { font-size: 26px; }
+.quick-note-description { color: #929e85; font-size: 11px; line-height: 1.8; margin-bottom: 20px; }
+.quick-note-dialog textarea { display: block; width: 100%; min-height: 180px; max-height: 45dvh; resize: vertical; padding: 14px; border: 1px solid #dce3d4; border-radius: 5px; background: #f9faf5; color: #536c43; font: 13px/1.9 'DM Sans',sans-serif; }
+.quick-note-dialog textarea::placeholder { color: #a1aa95; }
+.quick-note-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 18px; }
+.quick-note-title { display: flex; flex-direction: column; gap: 7px; font-size: 11px; color: #7d8f6d; margin-bottom: 12px; }
+.quick-note-title input { padding: 9px; border: 1px solid #dce3d4; background: #f9faf5; border-radius: 4px; }
+@media (max-width: 680px) { .quick-note-trigger span { display: none; } .quick-note-trigger { padding: 6px; } .quick-note-dialog { padding: 22px; } .quick-note-footer .draft-indicator { max-width: 145px; } }
+
+.journal-toolbar-actions { display: flex; align-items: center; gap: 13px; }
+.journal-toolbar-actions .quick-note-trigger span { display: inline; }
+@media (max-width: 680px) { .writing-toolbar { flex-wrap: wrap; } .journal-toolbar-actions { gap: 8px; margin-left: auto; } .journal-toolbar-actions .quick-note-trigger { padding: 6px 8px; } }
+
+/* Give the journal editor more breathing room below its heading. */
+main.notes-page { padding-top: 64px; }
+.notes-heading.journal-heading { margin-bottom: 80px; }
+@media (max-width: 680px) { main.notes-page { padding-top: 44px; } .notes-heading.journal-heading { margin-bottom: 60px; } }

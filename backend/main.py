@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from uuid import UUID, uuid4
 from .notifications import claim as claim_notifications
 from .recurrence import act_on_occurrence
+from .auto_recurrence import discover_repeats
 from .search import search_workspace
 
 from .inference import InferenceError, extract_memories
@@ -74,7 +75,10 @@ def initialize():
             CREATE TABLE IF NOT EXISTS reminder_recurrence (
                 suggestion_id TEXT PRIMARY KEY, frequency TEXT NOT NULL,
                 anchor_date TEXT NOT NULL, next_due TEXT NOT NULL,
-                occurrence_key TEXT NOT NULL
+                occurrence_key TEXT NOT NULL, origin TEXT NOT NULL DEFAULT 'manual'
+            );
+            CREATE TABLE IF NOT EXISTS reminder_repeat_choices (
+                suggestion_id TEXT PRIMARY KEY
             );
             CREATE TABLE IF NOT EXISTS reminder_occurrences (
                 suggestion_id TEXT NOT NULL, occurrence_key TEXT NOT NULL,
@@ -111,6 +115,8 @@ def initialize():
                 created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
             );
         ''')
+        if 'origin' not in {row['name'] for row in db.execute('PRAGMA table_info(reminder_recurrence)')}:
+            db.execute("ALTER TABLE reminder_recurrence ADD COLUMN origin TEXT NOT NULL DEFAULT 'manual'")
         columns = {row['name'] for row in db.execute('PRAGMA table_info(notes)')}
         if 'automatic' not in columns:
             db.execute('ALTER TABLE notes ADD COLUMN automatic INTEGER NOT NULL DEFAULT 0')
@@ -299,6 +305,7 @@ def organize_note(note_id):
                 db.execute('''INSERT INTO memories(person_id,note_id,category,value,evidence,replaces_id,note_revision)
                            VALUES (?,?,?,?,?,?,?)''', (person_id, note_id, candidate['category'], candidate['value'], candidate['evidence'], replacement, note['revision']))
             publish_personal(db, note, personal_candidates)
+            discover_repeats(db, note)
             publish_completions(db, note, completion_candidates)
             db.execute("UPDATE notes SET status = 'organized', candidates = ?, personal_candidates = ?, completion_candidates = ?, error = NULL WHERE id = ?",
                        (json.dumps(candidates), json.dumps(personal_candidates), json.dumps(completion_candidates), note_id))
@@ -372,6 +379,7 @@ def review(note_id: int, body: ReviewInput):
             db.execute('''INSERT INTO memories(person_id,note_id,category,value,evidence,edited,replaces_id,note_revision)
                        VALUES (?,?,?,?,?,?,?,?)''', (person_id, note_id, item.category, item.value,
                        candidate['evidence'], int(edited), item.replaces_id, note['revision']))
+        discover_repeats(db, note)
         db.execute("UPDATE notes SET status = 'reviewed', error = NULL WHERE id = ?", (note_id,))
     return {'saved': len(body.memories)}
 
@@ -422,6 +430,7 @@ def export():
         result['personal_completions'] = [dict(row) for row in db.execute('SELECT * FROM personal_completions ORDER BY id')]
         result['suggestion_actions'] = [dict(row) for row in db.execute('SELECT * FROM suggestion_actions')]
         result['suggestion_timing'] = [dict(row) for row in db.execute('SELECT * FROM suggestion_timing')]
+        result['reminder_repeat_choices'] = [dict(row) for row in db.execute('SELECT * FROM reminder_repeat_choices')]
         result['reminder_recurrence'] = [dict(row) for row in db.execute('SELECT * FROM reminder_recurrence')]
         result['reminder_occurrences'] = [dict(row) for row in db.execute('SELECT * FROM reminder_occurrences')]
     return JSONResponse(result, headers={'Content-Disposition': 'attachment; filename="weaver-export.json"'})
@@ -514,7 +523,7 @@ def set_reminder_timing(suggestion_id: str, body: ReminderTiming, timezone: str 
         if item['repeat'] and ('due_date' in fields or body.reset_due_date):
             if not body.due_date or body.due_date.year > 9998:
                 raise HTTPException(422, 'Repeating reminders need a due date before year 9999.')
-            db.execute('UPDATE reminder_recurrence SET next_due = ?, anchor_date = ? WHERE suggestion_id = ?',
+            db.execute("UPDATE reminder_recurrence SET next_due = ?, anchor_date = ?, origin = 'manual' WHERE suggestion_id = ?",
                        (body.due_date.isoformat(), body.due_date.isoformat(), suggestion_id))
         db.execute('INSERT OR IGNORE INTO suggestion_timing(suggestion_id) VALUES (?)', (suggestion_id,))
         if 'due_date' in fields or body.reset_due_date:
@@ -547,10 +556,11 @@ def set_reminder_repeat(suggestion_id: str, body: ReminderRepeat, timezone: str 
             anchor = existing['anchor_date'] if existing and existing['frequency'] == body.frequency and existing['next_due'] == due else due
             db.execute('''INSERT INTO reminder_recurrence(suggestion_id,frequency,anchor_date,next_due,occurrence_key)
                           VALUES (?,?,?,?,?) ON CONFLICT(suggestion_id) DO UPDATE SET
-                          frequency=excluded.frequency,anchor_date=excluded.anchor_date,next_due=excluded.next_due''',
+                          frequency=excluded.frequency,anchor_date=excluded.anchor_date,next_due=excluded.next_due,origin='manual' ''',
                        (base_id, body.frequency, anchor, due, uuid4().hex))
         else:
             db.execute('DELETE FROM reminder_recurrence WHERE suggestion_id = ?', (base_id,))
+        db.execute('INSERT OR IGNORE INTO reminder_repeat_choices(suggestion_id) VALUES (?)', (base_id,))
         # Turning repeat off keeps the pending occurrence as a one-off task.
         db.execute('''INSERT INTO suggestion_timing(suggestion_id,due_date,due_overridden) VALUES (?,?,1)
                       ON CONFLICT(suggestion_id) DO UPDATE SET due_date=excluded.due_date,due_overridden=1''', (base_id, due))

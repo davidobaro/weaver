@@ -37,6 +37,7 @@ personal: only the AUTHOR's actionable intentions, without an explicitly named o
 - reminder: "look into that running plan" (loose intent, not a definite activity).
 - goal: "I want to run twice a week" (an explicit aspiration/habit; MUST extract it).
 - plan: "I am going hiking on Saturday" (definite future activity).
+Preserve recurring intentions and their exact cadence in BOTH value and evidence ("water the plants every Saturday", "pay rent on the first of each month"). Include the cadence in the same contiguous evidence quote as the action. Never invent a frequency or start date. Recurring intentions involving named people belong in memories as plans/commitments, with the full cadence preserved.
 Keep timing and uncertainty IN THE VALUE, not only evidence: "I will pay the phone bill tomorrow" => task, "Pay the phone bill tomorrow".
 A named person's future wish belongs to THAT PERSON in memories, not personal.
 Do not attach unnamed tasks to a name appearing elsewhere: "Lina loves chess. Need to book an appointment." => Lina interest AND personal task.
