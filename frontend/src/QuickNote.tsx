@@ -9,7 +9,7 @@ import type { QuickNoteDraft } from './writingDrafts'
 export default function QuickNote({draft, onChange, onSaved}: {draft: QuickNoteDraft; onChange: (draft: QuickNoteDraft) => void; onSaved: () => void}) {
   const [open, setOpen] = useState(false)
   const {text, title} = draft
-  const [showTitle] = useState(!!draft.title)
+  const [showTitle, setShowTitle] = useState(!!draft.title)
   const [stored, setStored] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -48,7 +48,11 @@ export default function QuickNote({draft, onChange, onSaved}: {draft: QuickNoteD
       <div className="modal-heading"><h2 id={`${id}-title`}>A quick thought.</h2><button className="icon-button" aria-label="Close quick note" disabled={saving} onClick={() => setOpen(false)}><X size={18} /></button></div>
       <p className="quick-note-description">Catch it before it slips away. Weaver will connect the details.</p>
       <form onSubmit={event => { event.preventDefault(); void save() }}>
-        {showTitle && <label className="quick-note-title">Note title<input value={title} maxLength={180} disabled={saving} onChange={event => onChange({...draft, title: event.target.value})} /></label>}
+        {showTitle ? (
+          <label className="quick-note-title">Note title<input value={title} maxLength={180} disabled={saving} onChange={event => onChange({...draft, title: event.target.value})} /></label>
+        ) : (
+          <div className="quick-note-title-toggle"><button type="button" className="text-button" disabled={saving} onClick={() => setShowTitle(true)}>+ Add a title (optional)</button></div>
+        )}
         <label className="sr-only" htmlFor={`${id}-writing`}>Your quick note</label>
         <textarea id={`${id}-writing`} ref={writing} value={text} aria-describedby={`${id}-limit`} aria-invalid={entryLength(text) > ENTRY_CHARACTER_LIMIT} disabled={saving} placeholder="What would you like to remember?" onChange={event => onChange({...draft, text: event.target.value})} />
         <EntryLimit text={text} id={`${id}-limit`} />

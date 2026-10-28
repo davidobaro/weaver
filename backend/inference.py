@@ -271,11 +271,11 @@ def split_note(note: str, limit: int = CHUNK_CHARACTERS) -> list[str]:
 
 
 def _request_chunk(note: str, known_people: list, identity_context: str = '') -> Extraction:
-    key = os.getenv('NEBIUS_API_KEY', '')
+    key = os.getenv('NEBIUS_API_KEY', '').strip()
     if not key:
         raise InferenceError('Add NEBIUS_API_KEY to your local .env file, then restart Weaver.')
-    base = os.getenv('NEBIUS_BASE_URL') or 'https://api.tokenfactory.nebius.com/v1'
-    model = os.getenv('NEBIUS_MODEL') or 'nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B'
+    base = (os.getenv('NEBIUS_BASE_URL') or 'https://api.tokenfactory.nebius.com/v1').strip()
+    model = (os.getenv('NEBIUS_MODEL') or 'nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B').strip()
     payload = {'model': model, 'messages': [
         {'role': 'system', 'content': PROMPT},
         {'role': 'user', 'content': json.dumps({'known_people': known_people, 'subject_hints': subject_hints(note),

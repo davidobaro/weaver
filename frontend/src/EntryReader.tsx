@@ -71,7 +71,7 @@ export default function EntryReader({ entry, onClose, onEntry, onSaved }: {
     finally { setBusy(false) }
   }
   return <>
-    <div className="modal-heading"><h2 id="source-title">{editing ? 'Edit entry' : entry.title || (entry.kind === 'journal' ? 'Journal entry' : 'The original moment')}</h2><button className="icon-button" autoFocus aria-label="Close source note" disabled={busy} onClick={onClose}><X size={20} /></button></div>
+    <div className="modal-heading"><h2 id="source-title">{editing ? 'Edit entry' : entry.title || (entry.kind === 'journal' ? 'Journal entry' : 'The original moment')}</h2><button className="icon-button" autoFocus={!editing} aria-label="Close source note" disabled={busy} onClick={onClose}><X size={20} /></button></div>
     <div className="entry-reader-meta"><span>{entry.kind === 'journal' ? 'JOURNAL' : 'NOTE'} · {entryDate(entry.entry_date || entry.created_at)}</span><span>Version {revision}{entry.is_history ? ' · Earlier version' : ''}</span></div>
     {error && <p className="note-error" role="alert">{error}</p>}
     {entry.is_history && <p className="version-explanation">This is the writing behind an earlier version. Restoring it creates a new version and keeps manually corrected memories.</p>}

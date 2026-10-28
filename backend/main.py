@@ -3,6 +3,7 @@ import os
 import re
 import sqlite3
 import logging
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager, contextmanager
 from pathlib import Path
@@ -28,6 +29,7 @@ from .utils import name_key, entry_text
 from .personal import publish_personal
 from .completions import publish_completions
 from .profiles import profile_about
+from .noticed import entry_notices
 from .revisions import archive_entry, retire_generated, historical_entry, current_predecessor
 from .identities import (IdentityError, aliases_for, add_alias, get_or_create_person,
                          possible_matches, mentioned, merge_people, undo_merge, fingerprint)
@@ -52,6 +54,8 @@ def database():
 
 def initialize():
     with database() as db:
+        db.execute('PRAGMA journal_mode = WAL')
+        db.execute('PRAGMA synchronous = NORMAL')
         db.executescript('''
             CREATE TABLE IF NOT EXISTS notes (
                 id INTEGER PRIMARY KEY, text TEXT NOT NULL,
@@ -69,6 +73,8 @@ def initialize():
                 replaces_id INTEGER REFERENCES memories(id) ON DELETE SET NULL,
                 created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
             );
+            CREATE INDEX IF NOT EXISTS idx_memories_person_id ON memories(person_id);
+            CREATE INDEX IF NOT EXISTS idx_memories_note_id ON memories(note_id);
             CREATE TABLE IF NOT EXISTS suggestion_actions (
                 suggestion_id TEXT PRIMARY KEY, status TEXT NOT NULL,
                 updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
@@ -104,6 +110,7 @@ def initialize():
                 name_key TEXT PRIMARY KEY, name TEXT NOT NULL,
                 person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE
             );
+            CREATE INDEX IF NOT EXISTS idx_person_aliases_person_id ON person_aliases(person_id);
             CREATE TABLE IF NOT EXISTS distinct_people (
                 first_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
                 second_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
@@ -138,6 +145,7 @@ def initialize():
                 note_revision INTEGER NOT NULL, category TEXT NOT NULL,
                 value TEXT NOT NULL, evidence TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1
             );
+            CREATE INDEX IF NOT EXISTS idx_personal_reminders_note_id ON personal_reminders(note_id);
             CREATE TABLE IF NOT EXISTS personal_completions (
                 id INTEGER PRIMARY KEY, note_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
                 note_revision INTEGER NOT NULL,
@@ -145,6 +153,7 @@ def initialize():
                 evidence TEXT NOT NULL,
                 UNIQUE(note_id,note_revision,reminder_id)
             );
+            CREATE INDEX IF NOT EXISTS idx_personal_completions_reminder_id ON personal_completions(reminder_id);
             CREATE TABLE IF NOT EXISTS note_versions (
                 note_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
                 revision INTEGER NOT NULL, text TEXT NOT NULL, title TEXT NOT NULL,
@@ -178,13 +187,19 @@ app = FastAPI(title='Weaver', lifespan=lifespan)
 async def local_only(request: Request, call_next):
     # This first version has no accounts. Bind to loopback and reject browser
     # writes originating from other websites, including through the dev proxy.
-    host = request.headers.get('host', '').split(':')[0]
-    if host not in {'localhost', '127.0.0.1', 'testserver'}:
+    host_raw = request.headers.get('host', '')
+    host = host_raw.lstrip('[').split(']')[0].split(':')[0]
+    allowed_hosts = {'localhost', '127.0.0.1', '::1', 'testserver'}
+    extra_hosts = {h.strip() for h in os.getenv('WEAVER_ALLOWED_HOSTS', '').split(',') if h.strip()}
+    if host not in (allowed_hosts | extra_hosts):
         return JSONResponse({'detail': 'Weaver is a local application.'}, status_code=403)
     if request.method not in {'GET', 'HEAD', 'OPTIONS'}:
         origin = request.headers.get('origin')
-        if origin and origin not in {'http://localhost:5173', 'http://127.0.0.1:5173',
-                                     'http://localhost:8000', 'http://127.0.0.1:8000'}:
+        allowed_origins = {'http://localhost:5173', 'http://127.0.0.1:5173',
+                           'http://localhost:8000', 'http://127.0.0.1:8000',
+                           'http://[::1]:5173', 'http://[::1]:8000'}
+        extra_origins = {o.strip() for o in os.getenv('WEAVER_ALLOWED_ORIGINS', '').split(',') if o.strip()}
+        if origin and origin not in (allowed_origins | extra_origins):
             return JSONResponse({'detail': 'This origin is not allowed.'}, status_code=403)
     return await call_next(request)
 
@@ -202,14 +217,29 @@ def note_or_404(db, note_id):
 @app.get('/api/state')
 def state():
     with database() as db:
-        notes = [note_or_404(db, row['id']) for row in db.execute('SELECT id FROM notes ORDER BY id DESC')]
+        notes_rows = db.execute('SELECT * FROM notes ORDER BY id DESC').fetchall()
+        notes = []
+        for row in notes_rows:
+            note = dict(row)
+            for field in ('candidates', 'personal_candidates', 'completion_candidates'):
+                note[field] = json.loads(note[field]) if note[field] else None
+            notes.append(note)
+        notices = entry_notices(db, notes)
+        for note in notes:
+            noticed = notices.get(note['id'])
+            note['noticed'] = {key: noticed[key] for key in ('counts','version')} if noticed else None
         notes_by_id = {note['id']: note for note in notes}
         source_dates = {(row['note_id'], row['revision']): row['entry_date'] for row in db.execute('SELECT note_id, revision, entry_date FROM note_versions')}
         people = [dict(row) for row in db.execute('SELECT id, name FROM people ORDER BY name COLLATE NOCASE')]
+        all_aliases = defaultdict(list)
+        for row in db.execute('SELECT person_id, name, name_key FROM person_aliases ORDER BY name_key'):
+            all_aliases[row['person_id']].append({'name': row['name'], 'name_key': row['name_key']})
+        all_memories = defaultdict(list)
+        for row in db.execute('SELECT * FROM memories ORDER BY id DESC'):
+            all_memories[row['person_id']].append(dict(row))
         for person in people:
-            person['aliases'] = aliases_for(db, person['id'])
-            person['memories'] = [dict(row) for row in db.execute(
-                'SELECT * FROM memories WHERE person_id = ? ORDER BY id DESC', (person['id'],))]
+            person['aliases'] = all_aliases[person['id']]
+            person['memories'] = all_memories[person['id']]
             person['about'] = profile_about(person['memories'], notes_by_id, source_dates)
         matches = possible_matches(db, people)
         merges = [dict(row) for row in db.execute('SELECT id,target_id,source_name,created_at,fingerprint FROM people_merges WHERE undone=0 ORDER BY created_at DESC LIMIT 5')]
@@ -217,6 +247,13 @@ def state():
             event['can_undo'] = fingerprint(db, event['target_id']) == event.pop('fingerprint')
     return {'notes': notes, 'people': people, 'identity_matches': matches, 'people_merges': merges, 'inference_configured': bool(os.getenv('NEBIUS_API_KEY')),
             'model': os.getenv('NEBIUS_MODEL') or 'nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B'}
+
+
+@app.get('/api/notes/{note_id}/noticed')
+def what_was_noticed(note_id: int):
+    with database() as db:
+        note = note_or_404(db, note_id)
+        return entry_notices(db, [note], note_id).get(note_id, {'counts':None,'version':None,'people':[],'items':[]})
 
 
 def run_extraction(note_id):
@@ -410,7 +447,9 @@ def delete_note(note_id: int):
         # a surviving correction restore the nearest surviving predecessor.
         for memory in removed.values():
             previous = memory['replaces_id']
-            while previous in removed:
+            visited = set()
+            while previous in removed and previous not in visited:
+                visited.add(previous)
                 previous = removed[previous]['replaces_id']
             db.execute('UPDATE memories SET replaces_id = ? WHERE replaces_id = ? AND note_id != ?',
                        (previous, memory['id'], note_id))
@@ -461,7 +500,6 @@ def search(q: str = Query(default='', max_length=200),
            limit: int = Query(default=20, ge=1, le=100), timezone: str = 'America/New_York'):
     check_timezone(timezone)
     with database() as db:
-        db.execute('BEGIN')
         return search_workspace(db, q, coalesce_suggestions(_suggestions(db, timezone, True)), kind, limit)
 
 

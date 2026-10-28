@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ArrowRight, CalendarDays, Check, ChevronDown, Clock3, Flower2, Link2, LoaderCircle, MessageCircle, Repeat2, RotateCcw, SkipForward, X } from 'lucide-react'
 import { api } from './api'
+import { suggestionDigest } from './suggestionDigest'
 
 type Source = { id: number; person_id: number | null; person: string; note_id: number; note_revision?: number; category: string; value: string; evidence: string; edited: number }
 type Kind = 'follow_up' | 'date' | 'connection'
@@ -38,8 +39,8 @@ function dateLabel(item: Suggestion, today: string) {
   return format(item.due_start)
 }
 
-export default function ForYou({ revision, onSource, onPerson, onAddNote, compact = false, profile = false, fixedScope, personId }: {
-  compact?: boolean; profile?: boolean; fixedScope?: 'personal' | 'others'; personId?: number;
+export default function ForYou({ revision, onSource, onPerson, onAddNote, compact = false, profile = false, fixedScope, personId, onOpenAll }: {
+  onOpenAll?: () => void; compact?: boolean; profile?: boolean; fixedScope?: 'personal' | 'others'; personId?: number;
   revision: unknown; onSource: (noteId: number, revision?: number) => void; onPerson: (personId: number) => void; onAddNote: () => void
 }) {
   const [feed, setFeed] = useState<Feed | null>(null)
@@ -47,7 +48,6 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
   const [busy, setBusy] = useState(false)
   const [filter, setFilter] = useState<Kind | 'all'>('all')
   const [scope, setScope] = useState<Scope>('all')
-  const [limit, setLimit] = useState(6)
   const [status, setStatus] = useState('')
   const [editing, setEditing] = useState<{item: Suggestion; mode: Mode} | null>(null)
   const instance = useId()
@@ -106,20 +106,13 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
   const snoozed = relevant.filter(item => item.status === 'open' && item.snoozed && matches(item))
   const bucket = (item: Suggestion) => item.overdue ? 0 : item.due_start ? 1 : 2
   if (profile) shown.sort((a, b) => bucket(a) - bucket(b) || (a.due_start || '').localeCompare(b.due_start || ''))
-  const visible = shown.slice(0, compact || profile ? shown.length : limit)
+  const digest = suggestionDigest(shown, feed?.today || new Date().toISOString().slice(0,10))
+  const visible = profile ? shown : digest.highlights
 
   const Title = compact ? 'h3' : 'h2'
-  return <section className={`for-you-content ${compact ? 'for-you-compact' : ''} ${profile ? 'profile-tasks' : ''}`} aria-label={profile ? 'Tasks and obligations' : 'Personal suggestions'}>
-    {error && <div className="alert error" role="alert"><span>{error}</span><button className="text-button" onClick={() => load().catch(err => setError(err.message))}>Retry</button></div>}
-    <p className="sr-only" role="status">{status}</p>
-    {!feed && !error && <div className="loading-state"><LoaderCircle className="spin" size={20} /> Gathering the details…</div>}
-    {feed && <>
-      {!fixedScope && <div className="feed-filters feed-scope-filters" role="group" aria-label="Filter by who suggestions involve">{(['all', 'personal', 'others'] as Scope[]).map(value => <button key={value} aria-pressed={scope === value} onClick={() => { setScope(value); setLimit(6) }}>{value === 'all' ? 'All' : value === 'personal' ? 'Personal' : 'Others'}</button>)}</div>}
-      {!profile && relevant.some(item => item.status === 'open') && <div className="feed-filters" role="group" aria-label="Filter suggestions">{filters.map(option => <button key={option.value} aria-pressed={filter === option.value} onClick={() => { setFilter(option.value); setLimit(6) }}>{option.label}</button>)}</div>}
-      {!shown.length && (snoozed.length ? <p className="profile-tasks-empty">Nothing needs attention in this view right now. Your snoozed reminders are below.</p> : profile ? <p className="profile-tasks-empty">{past.length ? 'All caught up.' : fixedScope === 'personal' ? 'Your tasks, reminders, and goals will gather here as you write.' : 'No tasks or follow-ups recorded yet.'}</p> : <div className="feed-empty"><Flower2 size={36} strokeWidth={1.2} /><h2>{active.length ? 'Nothing in this view just yet.' : past.length ? 'A little room to breathe.' : 'A little attention starts here.'}</h2><p>{active.length ? 'Try another filter to see your other suggestions.' : scope === 'personal' ? 'Your own tasks, plans, reminders, and goals will appear here as you write.' : past.length ? 'You’ve handled the current suggestions. New notes and upcoming dates will bring more.' : 'As your notes grow, promises, upcoming dates, and possible connections will find their way here.'}</p>{!active.length && <button className="text-button" onClick={onAddNote}>Add a note <ArrowRight size={15} /></button>}</div>)}
-      <div className="suggestion-list" tabIndex={profile ? 0 : undefined} aria-label={profile ? 'Scrollable tasks and obligations' : undefined}>{visible.map((item, itemIndex) => {
+  const renderSuggestion = (item: Suggestion, itemIndex: number) => {
         const Icon = icons[item.kind]
-        const due = dateLabel(item, feed.today)
+        const due = dateLabel(item, feed!.today)
         if (profile) return <div key={item.id}>
           <h4 className={`task-group-label ${itemIndex > 0 && bucket(visible[itemIndex - 1]) === bucket(item) ? 'task-group-continuation' : ''}`}>{['Date passed', 'Upcoming', 'Anytime'][bucket(item)]}</h4>
           <article className="profile-task-row">
@@ -130,10 +123,9 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
         return <article key={item.id} className="suggestion-card">
           <div className="suggestion-meta"><span><Icon size={14} /> {item.scope === 'personal' ? `Personal · ${item.category === 'goal' ? 'Goal' : labels[item.kind]}` : labels[item.kind]}</span>{due && <span className={item.overdue ? 'overdue' : 'suggestion-date'}>{item.overdue ? 'Date passed · ' : ''}{due}</span>}</div>
           {item.repeat && <span className="repeat-label"><Repeat2 size={12} /> {item.past_occurrence ? 'Past occurrence' : `Repeats ${item.repeat}`}</span>}
-          <Title>{item.title}</Title>
-          <div className="suggestion-facts">{(item.kind === 'connection' ? item.sources : item.sources.slice(0, 1)).map((source, index) => <p key={`${source.id}-${index}`}>{item.kind === 'connection' && <strong>{source.person}: </strong>}{source.value}</p>)}</div>
-          <p className="suggestion-why">{item.why}</p>
-          <details className="suggestion-sources"><summary>Why this appeared <ChevronDown size={13} /></summary>{item.sources.map((source, index) => <div key={`${source.id}-${index}`}>{source.person_id !== null ? <button className="source-link" onClick={() => onPerson(source.person_id!)}>{source.person}</button> : <span className="source-link">From your writing</span>}<blockquote>“{source.evidence}”</blockquote><button className="source-link" onClick={() => onSource(source.note_id, source.note_revision)}>Read source note <ArrowRight size={12} /></button>{!!source.edited && <span className="edited-label">Memory edited by you</span>}</div>)}</details>
+          <Title>{item.kind === 'connection' ? item.title : item.sources[0].value}</Title>
+          {item.kind === 'connection' && <div className="suggestion-facts">{item.sources.map((source, index) => <p key={`${source.id}-${index}`}><strong>{source.person}: </strong>{source.value}</p>)}</div>}
+          <details className="suggestion-sources"><summary>Why this appeared <ChevronDown size={13} /></summary><p className="suggestion-why">{item.why}</p>{item.sources.map((source, index) => <div key={`${source.id}-${index}`}>{source.person_id !== null ? <button className="source-link" onClick={() => onPerson(source.person_id!)}>{source.person}</button> : <span className="source-link">From your writing</span>}<blockquote>“{source.evidence}”</blockquote><button className="source-link" onClick={() => onSource(source.note_id, source.note_revision)}>Read source note <ArrowRight size={12} /></button>{!!source.edited && <span className="edited-label">Memory edited by you</span>}</div>)}</details>
           <div className="suggestion-actions"><button className="small-button" disabled={busy} onClick={() => act(item, 'done')}><Check size={13} /> Mark done</button><ActionDropdown label={item.sources[0].value} disabled={busy}>
             {item.can_schedule && <>
               <button type="button" onClick={() => setEditing({item, mode: 'due'})}><CalendarDays size={14} /> Set due date</button>
@@ -144,8 +136,20 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
             <button type="button" className="dropdown-dismiss" onClick={() => dismiss(item)}><X size={14} /> {item.repeat && !item.past_occurrence ? 'Dismiss repeat' : 'Dismiss'}</button>
           </ActionDropdown></div>
         </article>
-      })}</div>
-      {!compact && !profile && shown.length > limit && <button className="text-button feed-more" onClick={() => setLimit(value => value + 6)}>Show more <ChevronDown size={14} /></button>}
+
+  }
+  return <section className={`for-you-content ${compact ? 'for-you-compact' : ''} ${profile ? 'profile-tasks' : ''}`} aria-label={profile ? 'Tasks and obligations' : 'Personal suggestions'}>
+    {error && <div className="alert error" role="alert"><span>{error}</span><button className="text-button" onClick={() => load().catch(err => setError(err.message))}>Retry</button></div>}
+    <p className="sr-only" role="status">{status}</p>
+    {!feed && !error && <div className="loading-state"><LoaderCircle className="spin" size={20} /> Gathering the details…</div>}
+    {feed && <>
+      {!fixedScope && <div className="feed-filters feed-scope-filters" role="group" aria-label="Filter by who suggestions involve">{(['all', 'personal', 'others'] as Scope[]).map(value => <button key={value} aria-pressed={scope === value} onClick={() => { setScope(value) }}>{value === 'all' ? 'All' : value === 'personal' ? 'Personal' : 'Others'}</button>)}</div>}
+      {!profile && !compact && relevant.some(item => item.status === 'open') && <details className="digest-type-filter"><summary>{filters.find(option=>option.value===filter)?.label}<ChevronDown size={12}/></summary><div className="feed-filters" role="group" aria-label="Filter suggestions">{filters.map(option=><button key={option.value} aria-pressed={filter===option.value} onClick={()=>setFilter(option.value)}>{option.label}</button>)}</div></details>}
+      {!shown.length && (snoozed.length ? <p className="profile-tasks-empty">Nothing needs attention in this view right now. Your snoozed reminders are below.</p> : profile ? <p className="profile-tasks-empty">{past.length ? 'All caught up.' : fixedScope === 'personal' ? 'Your tasks, reminders, and goals will gather here as you write.' : 'No tasks or follow-ups recorded yet.'}</p> : <div className="feed-empty"><Flower2 size={36} strokeWidth={1.2} /><h2>{active.length ? 'Nothing in this view just yet.' : past.length ? 'A little room to breathe.' : 'A little attention starts here.'}</h2><p>{active.length ? 'Try another filter to see your other suggestions.' : scope === 'personal' ? 'Your own tasks, plans, reminders, and goals will appear here as you write.' : past.length ? 'You’ve handled the current suggestions. New notes and upcoming dates will bring more.' : 'As your notes grow, promises, upcoming dates, and possible connections will find their way here.'}</p>{!active.length && <button className="text-button" onClick={onAddNote}>Add a note <ArrowRight size={15} /></button>}</div>)}
+      {!profile && !visible.length && shown.length > 0 && <p className="digest-quiet">{compact ? 'Nothing coming up in the next two weeks.' : 'Nothing coming up in the next two weeks. Your later reminders are below.'}</p>}
+      <div className="suggestion-list" tabIndex={profile ? 0 : undefined} aria-label={profile ? 'Scrollable tasks and obligations' : 'Suggested for now'}>{visible.map(renderSuggestion)}</div>
+      {!profile && compact && digest.remaining > 0 && <button className="source-link digest-view-all" onClick={onOpenAll}>View {digest.remaining} more {digest.remaining === 1 ? 'suggestion' : 'suggestions'} <ArrowRight size={12}/></button>}
+      {!profile && !compact && digest.groups.map(group=><details key={group.key} className={`digest-group digest-group-${group.key}`}><summary>{group.label}<span>{group.items.length}</span><ChevronDown size={13}/></summary><div className="suggestion-list">{group.items.map(renderSuggestion)}</div></details>)}
       {snoozed.length > 0 && <details className="suggestion-history snoozed-history"><summary>Snoozed <span>{snoozed.length}</span></summary>{snoozed.map(item => <div key={item.id}><div><strong>{item.sources[0].value}</strong><small>Until {dateLabel({...item, due_start: item.snoozed_until, due_end: item.snoozed_until}, feed.today)}</small><button className="source-link" onClick={() => onSource(item.sources[0].note_id, item.sources[0].note_revision)}>Source <ArrowRight size={10} /></button></div><div className="snoozed-actions"><button className="text-button" disabled={busy} onClick={() => bringBack(item)}><RotateCcw size={12} /> Bring back</button>{timingControls(item)}</div></div>)}</details>}
       {past.length > 0 && <details className="suggestion-history"><summary>Done & dismissed <span>{past.length}</span></summary>{past.map(item => <div key={item.id}><div><strong>{profile || item.scope === 'personal' ? item.sources[0].value : item.title}</strong><small>{item.past_occurrence && <>{dateLabel(item, feed.today)} · </>}{item.status === 'done' ? item.completion ? 'Done from your writing' : 'Done' : 'Dismissed'}</small>{item.completion && <button className="source-link completion-source" title={item.completion.evidence} onClick={() => onSource(item.completion!.note_id, item.completion!.note_revision)}>Completion source <ArrowRight size={10} /></button>}</div><button className="text-button" disabled={busy} onClick={() => act(item, 'open')}><RotateCcw size={12} /> Restore</button></div>)}</details>}
     </>}

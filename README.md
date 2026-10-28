@@ -113,6 +113,8 @@ MIT. See [LICENSE](LICENSE).
 
 Open **For you** in the sidebar for a short list of source-backed suggestions:
 
+The digest initially shows up to three relevant suggestions, preserving the feed’s priority order. Dates more than two weeks away stay out of the initial digest. Remaining suggestions are available in collapsed **More needing attention**, **Upcoming**, **Anytime**, and **Later** groups. The journal sidebar shows the same short digest and links to the full page. Scope filters stay visible; suggestion-type filters are folded into **All types** on the full page.
+
 - **Follow-ups:** active commitments, including undated promises. A passed date is a cue to check whether the commitment is done, not a claim that it was missed.
 - **Dates:** birthdays within 30 days and dated plans within 14 days. Birthday month/day values recur annually. Relative phrases use the source note’s local date; “next week” remains a Monday–Sunday range rather than an invented day. Ambiguous numeric dates and uncertain dates are not scheduled. Supported dates include month names, ISO dates, today, tomorrow, this/next week, clear weekday references such as “on Friday,” and “in N days.” Ambiguous “next Friday” is left undated. Month/day plans without a year use the calendar occurrence nearest the source note date.
 - **Connections:** tentative matches between different people's explicit plans and interests across a small set of activity topics. These are local topic-based suggestions, not inferred friendships or a general semantic recommendation agent.
@@ -150,6 +152,8 @@ Journal and quick-note drafts are saved separately in this browser's local stora
 
 The entries list can be filtered by Notes/Journal and searched by title or text. Open an entry to read its full text. People, About, aliases, and For you use the same underlying memories. For a backdated journal entry, relative date phrases use its chosen entry date rather than the later capture date. This is a plain-text first version; saved entries support editing and version history. Rich-text formatting is not implemented yet.
 
+Organized entries have a collapsed **What Weaver noticed** summary with counts for people, facts, tasks, and completed actions. Expand it to check the saved extraction against exact source quotes, open a person’s profile, or read/edit the entry. This uses records from the entry’s current revision and makes no additional model call. Facts superseded later are marked **Updated later**. Completed actions describe what the writing says happened; they do not claim that an existing task was matched and closed. Task status and schedules remain in For you. Reflections without extracted details show **Just your writing**.
+
 ## Editing and version history
 
 Open an entry and choose **Edit entry** to change its title, type, date, or body. **Save changes** immediately saves a new revision and updates connected information in the background. Identical content does not create another revision. Edits made from a stale tab return a conflict instead of overwriting a newer version.
@@ -172,7 +176,7 @@ Section results are source-checked, deduplicated, and published in one transacti
 
 Automatic organization now extracts the author's own tasks, plans, loose reminders, and goals alongside named-person memories. Personal items require exact source quotes and never create a person record. New entries extract both kinds together; existing writing remains intact. Personal reminders are versioned through their source entries and retired when the source is revised or deleted. Repeated equivalent personal wording shares suggestion status and can retain several source links.
 
-For you and the journal sidebar have All / Personal / Others filters, alongside suggestion-type filters. People always includes a You tab, even before any other profiles exist. You lists personal intentions; other profiles list the plans and commitments involving that person, including undated plans outside the main suggestion feed's date windows. Profile tasks use compact rows grouped by date passed, upcoming, and anytime, with small check and dismiss buttons plus source links. Done, dismissed, and restored statuses are shared across views. Optional browser alerts are available; no calendar changes are made.
+For you and the journal sidebar have All / Personal / Others filters; the full For you page also has expandable suggestion-type filters. People always includes a You tab, even before any other profiles exist. You lists personal intentions; other profiles list the plans and commitments involving that person, including undated plans outside the main suggestion feed's date windows. Profile tasks use compact rows grouped by date passed, upcoming, and anytime, with small check and dismiss buttons plus source links. Done, dismissed, and restored statuses are shared across views. Optional browser alerts are available; no calendar changes are made.
 
 ### Due dates and snooze
 

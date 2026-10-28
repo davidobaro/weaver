@@ -26,6 +26,7 @@ def find_person(db, name):
 
 
 def get_or_create_person(db, name):
+    name = ' '.join(name.strip().split())
     person = find_person(db, name)
     return person['id'] if person else db.execute('INSERT INTO people(name,name_key) VALUES (?,?)',
                                                  (name, name_key(name))).lastrowid
