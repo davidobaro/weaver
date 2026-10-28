@@ -38,10 +38,9 @@ def completed_action(text, item):
     start = text.find(evidence)
     if start < 0 or UNFINISHED.search(evidence):
         return None
-    boundary = max(text.rfind(mark, 0, start) for mark in ('.', '!', '?', '\n'))
-    after = start + len(evidence)
-    end_match = re.search(r'[.!?\n]', text[after:])
-    end = after + end_match.end() if end_match else len(text)
+    boundary = max(text.rfind(mark, 0, start) for mark in ('.', '!', '?', '\n', ';'))
+    end_match = re.search(r'[.!?\n;]', text[start:])
+    end = start + end_match.end() if end_match else len(text)
     sentence = text[boundary + 1:end].strip()
     actor = ACTOR.match(sentence)
     if not actor or UNFINISHED.search(sentence) or '?' in sentence:

@@ -202,7 +202,7 @@ Notification tests: `.venv/bin/python -m pytest tests/test_notifications.py -q` 
 
 ### Repeating reminders
 
-Use the small repeat icon beside a task's calendar and snooze controls in For you, the journal sidebar, You, or a person's profile. Choose **Daily**, **Weekly**, or **Monthly** and a next due date. Repeat is explicit in this version; writing a recurring intention does not automatically turn on a schedule.
+Use the small repeat icon beside a task's calendar and snooze controls in For you, the journal sidebar, You, or a person's profile. Choose **Daily**, **Weekly**, or **Monthly** and a next due date. Clear recurring intentions in newly organized writing can also create schedules automatically. The repeat editor identifies schedules set from writing and lets you change or stop them.
 
 **Mark done** or **Skip** archives that occurrence and schedules the next date after both its current due date and today in your chosen timezone. Daily/weekly repeats preserve their calendar cadence. Monthly repeats preserve the chosen day (January 31 → February 28/29 → March 31). An unresolved occurrence stays pending/overdue; missed periods do not create an accumulating backlog when you handle it. Completing a future occurrence early advances from that scheduled date.
 
@@ -219,3 +219,21 @@ Use **Search** in the top bar (or **⌘K / Ctrl+K**) from any page. Search spans
 This is local keyword search, with case/accent normalization, word-prefix matching, and all query words matched in any order. Exact names/titles rank higher; open tasks rank ahead of otherwise equivalent completed occurrences. It does not use embeddings, synonyms, or natural-language question answering, and makes no Nebius/Nemotron calls. Entries awaiting organization are searchable as writing; retired facts are excluded from memory/profile/task matches while the original writing remains searchable as an entry. Deleted entries disappear from results.
 
 Queries are limited to 200 characters, results initially show 20, and Show more expands up to 100 before asking for a narrower query. Query/filter state lives only in the mounted search component. Debouncing and stale-response guards prevent old requests from replacing newer results. The existing journal entry filter and People name filter remain available. Search tests: `.venv/bin/python -m pytest tests/test_search.py -q`.
+
+### Repeats from your writing
+
+New and re-organized entries recognize clear author intentions such as “I need to water the plants every Saturday,” “Stretch daily,” “Pay rent on the first of each month,” and “I need to call Mira every Friday.” Nemotron preserves the cadence and an exact source quote; local code validates the surrounding source sentence and creates the schedule in the same transaction as the organized facts. Merely opening a page never creates or resets a schedule, and old organized entries are not automatically backfilled.
+
+Supported schedules include every/each day or daily, one explicit weekday (every Saturday / on Saturdays), and an explicit numeric/ordinal day of each month (including its last day). Bare weekly/monthly phrases need an explicit supported start date; the source entry's date anchors relative dates. Monthly day 31 uses a shorter month's last day and returns to day 31 afterward. Unresolved past occurrences stay overdue until handled, following the existing repeat behavior. Quick notes use Weaver's existing America/New_York source-day convention; the resulting automatic schedule stays stable when viewed in another timezone.
+
+Uncertain, negated, historical, third-party habits, questions, multi-day patterns, alternate weeks, bounded periods, and specific clock times do not create automatic repeat schedules. Unsupported wording remains available as a regular task/goal when extracted; the repeat control remains available for manual scheduling. Automatic detection uses a conservative set of author-intention/action forms, rather than claiming to understand every possible phrasing.
+
+Changing repeat frequency or its due-date anchor makes the schedule manual. Turning it off is remembered, including after reprocessing, source restore, and profile merge/undo, so the same source fact does not silently re-enable it. Current occurrence progress and completion history are preserved when a supported source fact is re-organized unchanged. The inferred schedule remains linked to its source entry; retired/deleted facts leave the active views. Schedule origin and manual-choice records are included in JSON export.
+
+Tests: `.venv/bin/python -m pytest tests/test_auto_recurrence.py -q`.
+
+### Organization and suggestion quality
+
+Extraction sends only relevant profile context for each entry section, validates source quotes and actor/timing consistency, and retries explicit omissions rather than silently accepting them. Equivalent task cards retain all source links; their completion, date, snooze and repeat controls update the grouped sources together. Different people, schedules and monthly anchors stay separate. For you prioritizes overdue items, today, upcoming dates and commitments ahead of open-ended suggestions.
+
+See the [October 27 optimization report](reports/2026-10-27-optimization/report.md) for the eight-case live benchmark, measured processing times, limitations and regression coverage.

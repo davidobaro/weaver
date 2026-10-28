@@ -131,6 +131,7 @@ def build_suggestions(db, today=None, timezone='America/New_York', include_all_p
     today = today or datetime.now(zone).date()
     from .recurrence import apply_recurrence
     recurring = {row['suggestion_id'] for row in db.execute('SELECT suggestion_id FROM reminder_recurrence')}
+    repeat_choices = {row['suggestion_id'] for row in db.execute('SELECT suggestion_id FROM reminder_repeat_choices')}
     timing = {row['suggestion_id']: dict(row) for row in db.execute('SELECT * FROM suggestion_timing')}
     memories = [dict(row) for row in db.execute('''
         SELECT m.*, p.name AS person, n.created_at AS noted_at,
@@ -239,6 +240,13 @@ def build_suggestions(db, today=None, timezone='America/New_York', include_all_p
         window = date_window(reminder['value'], anchor, today)
         key = key_for('personal', reminder['category'], normalized(reminder['value']),
                       window[0] if window else '', window[1] if window else '')
+        # Automatic schedules use the same source-day convention as publication.
+        # Keep that identity when a quick note is viewed in another timezone.
+        canonical_window = date_window(reminder['value'], entry_anchor(reminder, ZoneInfo('America/New_York')), today)
+        canonical_key = key_for('personal', reminder['category'], normalized(reminder['value']),
+                                canonical_window[0] if canonical_window else '', canonical_window[1] if canonical_window else '')
+        if canonical_key in recurring or canonical_key in repeat_choices:
+            key = canonical_key
         source_item = {field: reminder[field] for field in ('id', 'note_id', 'note_revision', 'category', 'value', 'evidence')}
         source_item.update({'person_id': None, 'person': 'You', 'edited': 0})
         if key in personal_items:
@@ -282,10 +290,13 @@ def build_suggestions(db, today=None, timezone='America/New_York', include_all_p
             if item['scope'] == 'personal':
                 item['rank'] = 2 if item['due_start'] else 1
             item['why'] = 'You chose this due date.' if item['due_start'] else 'You kept this in Anytime.'
+        if item['can_schedule']:
+            item['kind'] = 'date' if item['due_start'] else 'follow_up'
         item['snoozed_until'] = preference.get('snoozed_until')
         item['snoozed'] = bool(item['status'] == 'open' and item['snoozed_until'] and item['snoozed_until'] > today.isoformat())
     result = apply_recurrence(db, result, today)
-    result.sort(key=lambda item: (item['snoozed'], item['rank'], item['due_start'] or '9999', item['id']))
+    from .suggestion_quality import priority_key
+    result.sort(key=lambda item: priority_key(item, today))
     for item in result:
         item.pop('rank')
     return {'suggestions': result, 'today': today.isoformat(), 'timezone': timezone}

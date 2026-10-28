@@ -92,7 +92,8 @@ def test_past_plans_do_not_recur_but_past_commitments_can_be_revisited(client):
     remember('Maya', 'plan', 'Visit a garden on October 12')
     remember('Stephen', 'commitment', 'Send the photos by October 12')
     item, = suggestions(client)
-    assert item['kind'] == 'follow_up'
+    assert item['kind'] == 'date'
+    assert item['sources'][0]['category'] == 'commitment'
     assert item['overdue'] is True
     assert item['due_start'] == '2026-10-12'
 

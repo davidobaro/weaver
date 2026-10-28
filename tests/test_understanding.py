@@ -87,11 +87,9 @@ def test_administrative_task_stays_a_task_even_with_timing(value):
     ('I will pay the phone bill tomorrow.', 'Pay the phone bill'),
     ('Submit the form by Friday.', 'Submit the form'),
 ])
-def test_missing_deadline_requires_a_corrected_answer(text, value):
+def test_missing_deadline_is_restored_from_a_single_exact_source_intention(text, value):
     result = parsed(text, personal=[{'category': 'task', 'value': value, 'evidence': text}])
-    with pytest.raises(inference.ExtractionValidationError, match='deadline'):
-        inference.validate_meaning(result, text)
-    result.personal[0].value = text
+    assert result.personal[0].value == text.rstrip('.')
     inference.validate_meaning(result, text)
 
 

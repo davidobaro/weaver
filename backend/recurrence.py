@@ -34,10 +34,10 @@ def apply_recurrence(db, items, today):
     result = []
     for original in items:
         base_id = original['id']
-        original.update(base_id=base_id, repeat=None, repeat_origin=None, past_occurrence=False)
+        original.update(base_id=base_id, repeat=None, repeat_origin=None, repeat_anchor_day=None, past_occurrence=False)
         rule = rules.get(base_id)
         if rule and original['can_schedule']:
-            original.update(id=occurrence_id(base_id, rule['occurrence_key']), repeat=rule['frequency'], repeat_origin=rule['origin'],
+            original.update(id=occurrence_id(base_id, rule['occurrence_key']), repeat=rule['frequency'], repeat_origin=rule['origin'], repeat_anchor_day=int(rule['anchor_date'][-2:]),
                             due_start=rule['next_due'], due_end=rule['next_due'], status='open',
                             due_date_overridden=True, kind='date', rank=2,
                             overdue=rule['next_due'] < today.isoformat(),

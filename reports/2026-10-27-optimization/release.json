@@ -1,0 +1,3185 @@
+[
+  {
+    "case": "mixed_names",
+    "text": "Coffee with stewy and Zo\u00eb today. stewy moved into a new apartment. Zo\u00eb loves ceramics. I need to renew my passport tomorrow. Look into that running plan.",
+    "status": "organized",
+    "issues": [],
+    "save_seconds": 0.002,
+    "organized_seconds": 14.737,
+    "requests": [
+      {
+        "seconds": 14.681,
+        "prompt_characters": 3390,
+        "context_characters": 2,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 3426,
+          "prompt_tokens": 780,
+          "total_tokens": 4206,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"Zo\u00eb\",\n      \"category\": \"interest\",\n      \"value\": \"loves ceramics\",\n      \"evidence\": \"Zo\u00eb loves ceramics.\"\n    },\n    {\n      \"person\": \"stewy\",\n      \"category\": \"context\",\n      \"value\": \"moved into a new apartment\",\n      \"evidence\": \"stewy moved into a new apartment.\"\n    },\n    {\n      \"person\": \"stewy\",\n      \"category\": \"plan\",\n      \"value\": \"coffee today\",\n      \"evidence\": \"Coffee with stewy and Zo\u00eb today.\"\n    }\n  ],\n  \"personal\": [\n    {\n      \"category\": \"plan\",\n      \"value\": \"renew my passport tomorrow\",\n      \"evidence\": \"I need to renew my passport tomorrow.\"\n    },\n    {\n      \"category\": \"goal\",\n      \"value\": \"look into that running plan\",\n      \"evidence\": \"Look into that running plan.\"\n    }\n  ],\n  \"completed_personal\": []\n}"
+      }
+    ],
+    "completion_candidates": [],
+    "personal": [
+      {
+        "id": 1,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "task",
+        "value": "renew my passport tomorrow",
+        "evidence": "I need to renew my passport tomorrow.",
+        "active": 1
+      },
+      {
+        "id": 2,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "goal",
+        "value": "look into that running plan",
+        "evidence": "Look into that running plan.",
+        "active": 1
+      }
+    ],
+    "people": [
+      {
+        "id": 1,
+        "name": "Maya",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 2,
+            "person_id": 1,
+            "note_id": 2,
+            "category": "interest",
+            "value": "Loves hiking",
+            "evidence": "Loves hiking",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:10.084Z",
+            "note_revision": 1
+          },
+          {
+            "id": 1,
+            "person_id": 1,
+            "note_id": 1,
+            "category": "birthday",
+            "value": "Birthday April 8",
+            "evidence": "Birthday April 8",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:10.084Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 1,
+              "note_id": 1,
+              "note_revision": 1,
+              "label": "Birthday",
+              "value": "Birthday April 8",
+              "evidence": "Birthday April 8",
+              "noted_at": "2026-10-20",
+              "edited": false
+            },
+            {
+              "memory_id": 2,
+              "note_id": 2,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "Loves hiking",
+              "evidence": "Loves hiking",
+              "noted_at": "2026-10-20",
+              "edited": false
+            }
+          ],
+          "note_count": 2
+        }
+      },
+      {
+        "id": 3,
+        "name": "stewy",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 5,
+            "person_id": 3,
+            "note_id": 3,
+            "category": "plan",
+            "value": "coffee today",
+            "evidence": "Coffee with stewy and Zo\u00eb today.",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:24.816Z",
+            "note_revision": 1
+          },
+          {
+            "id": 4,
+            "person_id": 3,
+            "note_id": 3,
+            "category": "context",
+            "value": "moved into a new apartment",
+            "evidence": "stewy moved into a new apartment.",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:24.816Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 4,
+              "note_id": 3,
+              "note_revision": 1,
+              "label": "From your notes",
+              "value": "moved into a new apartment",
+              "evidence": "stewy moved into a new apartment.",
+              "noted_at": "2026-10-27",
+              "edited": false
+            },
+            {
+              "memory_id": 5,
+              "note_id": 3,
+              "note_revision": 1,
+              "label": "Current plans",
+              "value": "coffee today",
+              "evidence": "Coffee with stewy and Zo\u00eb today.",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 1
+        }
+      },
+      {
+        "id": 2,
+        "name": "Zo\u00eb",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 3,
+            "person_id": 2,
+            "note_id": 3,
+            "category": "interest",
+            "value": "loves ceramics",
+            "evidence": "Zo\u00eb loves ceramics.",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:24.816Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 3,
+              "note_id": 3,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "loves ceramics",
+              "evidence": "Zo\u00eb loves ceramics.",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 1
+        }
+      }
+    ],
+    "suggestions": [
+      {
+        "id": "2df0ece6250b26d184795596c849c3b8",
+        "kind": "date",
+        "title": "Check in on plans with stewy",
+        "why": "This plan has a date or date range coming up.",
+        "sources": [
+          {
+            "id": 5,
+            "person_id": 3,
+            "person": "stewy",
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "plan",
+            "value": "coffee today",
+            "evidence": "Coffee with stewy and Zo\u00eb today.",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-27",
+        "due_end": "2026-10-27",
+        "overdue": false,
+        "scope": "others",
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-27",
+        "original_due_end": "2026-10-27",
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "2df0ece6250b26d184795596c849c3b8",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "2df0ece6250b26d184795596c849c3b8"
+        ]
+      },
+      {
+        "id": "5efc9e7381a1e3187061c554fcdf863d",
+        "scope": "personal",
+        "category": "task",
+        "kind": "date",
+        "title": "A task for you",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 1,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "task",
+            "value": "renew my passport tomorrow",
+            "evidence": "I need to renew my passport tomorrow.",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-28",
+        "due_end": "2026-10-28",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-28",
+        "original_due_end": "2026-10-28",
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "5efc9e7381a1e3187061c554fcdf863d",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "5efc9e7381a1e3187061c554fcdf863d"
+        ]
+      },
+      {
+        "id": "563eead1a09bfc92bae4e80eb369fb15",
+        "scope": "personal",
+        "category": "goal",
+        "kind": "follow_up",
+        "title": "A personal goal",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 2,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "goal",
+            "value": "look into that running plan",
+            "evidence": "Look into that running plan.",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "563eead1a09bfc92bae4e80eb369fb15",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "563eead1a09bfc92bae4e80eb369fb15"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "correction",
+    "text": "Maya corrected me: her birthday is April 18, not April 8. Maya enjoys jazz. I need to book a dentist appointment. I promised Maya I would send her the trail guide.",
+    "status": "organized",
+    "issues": [],
+    "save_seconds": 0.002,
+    "organized_seconds": 13.211,
+    "requests": [
+      {
+        "seconds": 13.182,
+        "prompt_characters": 3497,
+        "context_characters": 120,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 2439,
+          "prompt_tokens": 816,
+          "total_tokens": 3255,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"Maya\",\n      \"category\": \"birthday\",\n      \"value\": \"Birthday April 18\",\n      \"evidence\": \"her birthday is April 18, not April 8\",\n      \"replaces_id\": 1\n    },\n    {\n      \"person\": \"Maya\",\n      \"category\": \"interest\",\n      \"value\": \"Enjoys jazz\",\n      \"evidence\": \"Maya enjoys jazz\"\n    },\n    {\n      \"person\": \"Maya\",\n      \"category\": \"commitment\",\n      \"value\": \"Send trail guide\",\n      \"evidence\": \"I promised Maya I would send her the trail guide\"\n    }\n  ],\n  \"personal\": [\n    {\n      \"category\": \"task\",\n      \"value\": \"Book dentist appointment\",\n      \"evidence\": \"I need to book a dentist appointment\"\n    }\n  ],\n  \"completed_personal\": []\n}"
+      }
+    ],
+    "completion_candidates": [],
+    "personal": [
+      {
+        "id": 1,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "task",
+        "value": "Book dentist appointment",
+        "evidence": "I need to book a dentist appointment",
+        "active": 1
+      }
+    ],
+    "people": [
+      {
+        "id": 1,
+        "name": "Maya",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 5,
+            "person_id": 1,
+            "note_id": 3,
+            "category": "commitment",
+            "value": "Send trail guide",
+            "evidence": "I promised Maya I would send her the trail guide",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:38.058Z",
+            "note_revision": 1
+          },
+          {
+            "id": 4,
+            "person_id": 1,
+            "note_id": 3,
+            "category": "interest",
+            "value": "Enjoys jazz",
+            "evidence": "Maya enjoys jazz",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:38.058Z",
+            "note_revision": 1
+          },
+          {
+            "id": 3,
+            "person_id": 1,
+            "note_id": 3,
+            "category": "birthday",
+            "value": "Birthday April 18",
+            "evidence": "her birthday is April 18, not April 8",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": 1,
+            "created_at": "2026-10-28T01:56:38.058Z",
+            "note_revision": 1
+          },
+          {
+            "id": 2,
+            "person_id": 1,
+            "note_id": 2,
+            "category": "interest",
+            "value": "Loves hiking",
+            "evidence": "Loves hiking",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:24.851Z",
+            "note_revision": 1
+          },
+          {
+            "id": 1,
+            "person_id": 1,
+            "note_id": 1,
+            "category": "birthday",
+            "value": "Birthday April 8",
+            "evidence": "Birthday April 8",
+            "edited": 0,
+            "active": 0,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:24.851Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 3,
+              "note_id": 3,
+              "note_revision": 1,
+              "label": "Birthday",
+              "value": "Birthday April 18",
+              "evidence": "her birthday is April 18, not April 8",
+              "noted_at": "2026-10-27",
+              "edited": false
+            },
+            {
+              "memory_id": 4,
+              "note_id": 3,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "Enjoys jazz",
+              "evidence": "Maya enjoys jazz",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 2
+        }
+      }
+    ],
+    "suggestions": [
+      {
+        "id": "947c7c1cbc749fe0286dfaf654d409e4",
+        "kind": "follow_up",
+        "title": "Revisit a commitment with Maya",
+        "why": "Your note includes a promise or commitment worth checking on.",
+        "sources": [
+          {
+            "id": 5,
+            "person_id": 1,
+            "person": "Maya",
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "commitment",
+            "value": "Send trail guide",
+            "evidence": "I promised Maya I would send her the trail guide",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "scope": "others",
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "947c7c1cbc749fe0286dfaf654d409e4",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "947c7c1cbc749fe0286dfaf654d409e4"
+        ]
+      },
+      {
+        "id": "6e58c61617cd16f98f400c740d164c24",
+        "scope": "personal",
+        "category": "task",
+        "kind": "follow_up",
+        "title": "A task for you",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 1,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "task",
+            "value": "Book dentist appointment",
+            "evidence": "I need to book a dentist appointment",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "6e58c61617cd16f98f400c740d164c24",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "6e58c61617cd16f98f400c740d164c24"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "recurring_mixed",
+    "text": "I need to water the plants every Saturday. I should stretch daily. I need to pay rent on the first of each month. Noor is learning guitar. Look into a photography course.",
+    "status": "organized",
+    "issues": [],
+    "save_seconds": 0.003,
+    "organized_seconds": 10.515,
+    "requests": [
+      {
+        "seconds": 10.48,
+        "prompt_characters": 3393,
+        "context_characters": 2,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 2186,
+          "prompt_tokens": 766,
+          "total_tokens": 2952,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"Noor\",\n      \"category\": \"interest\",\n      \"value\": \"learning guitar\",\n      \"evidence\": \"Noor is learning guitar\"\n    }\n  ],\n  \"personal\": [\n    {\n      \"category\": \"task\",\n      \"value\": \"water the plants every Saturday\",\n      \"evidence\": \"water the plants every Saturday\"\n    },\n    {\n      \"category\": \"goal\",\n      \"value\": \"stretch daily\",\n      \"evidence\": \"stretch daily\"\n    },\n    {\n      \"category\": \"task\",\n      \"value\": \"pay rent on the first of each month\",\n      \"evidence\": \"pay rent on the first of each month\"\n    },\n    {\n      \"category\": \"plan\",\n      \"value\": \"Look into a photography course\",\n      \"evidence\": \"Look into a photography course\"\n    }\n  ],\n  \"completed_personal\": []\n}"
+      }
+    ],
+    "completion_candidates": [],
+    "personal": [
+      {
+        "id": 1,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "task",
+        "value": "water the plants every Saturday",
+        "evidence": "water the plants every Saturday",
+        "active": 1
+      },
+      {
+        "id": 2,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "goal",
+        "value": "stretch daily",
+        "evidence": "stretch daily",
+        "active": 1
+      },
+      {
+        "id": 3,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "task",
+        "value": "pay rent on the first of each month",
+        "evidence": "pay rent on the first of each month",
+        "active": 1
+      },
+      {
+        "id": 4,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "plan",
+        "value": "Look into a photography course",
+        "evidence": "Look into a photography course",
+        "active": 1
+      }
+    ],
+    "people": [
+      {
+        "id": 1,
+        "name": "Maya",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 2,
+            "person_id": 1,
+            "note_id": 2,
+            "category": "interest",
+            "value": "Loves hiking",
+            "evidence": "Loves hiking",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:38.095Z",
+            "note_revision": 1
+          },
+          {
+            "id": 1,
+            "person_id": 1,
+            "note_id": 1,
+            "category": "birthday",
+            "value": "Birthday April 8",
+            "evidence": "Birthday April 8",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:38.095Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 1,
+              "note_id": 1,
+              "note_revision": 1,
+              "label": "Birthday",
+              "value": "Birthday April 8",
+              "evidence": "Birthday April 8",
+              "noted_at": "2026-10-20",
+              "edited": false
+            },
+            {
+              "memory_id": 2,
+              "note_id": 2,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "Loves hiking",
+              "evidence": "Loves hiking",
+              "noted_at": "2026-10-20",
+              "edited": false
+            }
+          ],
+          "note_count": 2
+        }
+      },
+      {
+        "id": 2,
+        "name": "Noor",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 3,
+            "person_id": 2,
+            "note_id": 3,
+            "category": "interest",
+            "value": "learning guitar",
+            "evidence": "Noor is learning guitar",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:48.606Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 3,
+              "note_id": 3,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "learning guitar",
+              "evidence": "Noor is learning guitar",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 1
+        }
+      }
+    ],
+    "suggestions": [
+      {
+        "id": "147a84a57d0a06c341a9dcc51d78efa9",
+        "scope": "personal",
+        "category": "goal",
+        "kind": "date",
+        "title": "A personal goal",
+        "why": "Your writing sets a daily repeat. Mark done or skip to schedule the next occurrence.",
+        "sources": [
+          {
+            "id": 2,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "goal",
+            "value": "stretch daily",
+            "evidence": "stretch daily",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-27",
+        "due_end": "2026-10-27",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": true,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "4ffd9a674ee36a2a23c743e2b2d090ea",
+        "repeat": "daily",
+        "repeat_origin": "writing",
+        "repeat_anchor_day": 27,
+        "past_occurrence": false,
+        "related_ids": [
+          "147a84a57d0a06c341a9dcc51d78efa9"
+        ]
+      },
+      {
+        "id": "11afd1c9a83c045a58688667d8af0b75",
+        "scope": "personal",
+        "category": "task",
+        "kind": "date",
+        "title": "A task for you",
+        "why": "Your writing sets a weekly repeat. Mark done or skip to schedule the next occurrence.",
+        "sources": [
+          {
+            "id": 1,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "task",
+            "value": "water the plants every Saturday",
+            "evidence": "water the plants every Saturday",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-31",
+        "due_end": "2026-10-31",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-31",
+        "original_due_end": "2026-10-31",
+        "due_date_overridden": true,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "e49c8064430a43bfeffb717f4997ca50",
+        "repeat": "weekly",
+        "repeat_origin": "writing",
+        "repeat_anchor_day": 31,
+        "past_occurrence": false,
+        "related_ids": [
+          "11afd1c9a83c045a58688667d8af0b75"
+        ]
+      },
+      {
+        "id": "dbd3d1b332550a4cd1a43a32ecc95b67",
+        "scope": "personal",
+        "category": "task",
+        "kind": "date",
+        "title": "A task for you",
+        "why": "Your writing sets a monthly repeat. Mark done or skip to schedule the next occurrence.",
+        "sources": [
+          {
+            "id": 3,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "task",
+            "value": "pay rent on the first of each month",
+            "evidence": "pay rent on the first of each month",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-11-01",
+        "due_end": "2026-11-01",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": true,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "0a46ab01daad504273b8aa6bf68db2db",
+        "repeat": "monthly",
+        "repeat_origin": "writing",
+        "repeat_anchor_day": 1,
+        "past_occurrence": false,
+        "related_ids": [
+          "dbd3d1b332550a4cd1a43a32ecc95b67"
+        ]
+      },
+      {
+        "id": "4a6946a08c17b4af662737c051a41ab9",
+        "scope": "personal",
+        "category": "plan",
+        "kind": "follow_up",
+        "title": "A plan for you",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 4,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "plan",
+            "value": "Look into a photography course",
+            "evidence": "Look into a photography course",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "4a6946a08c17b4af662737c051a41ab9",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "4a6946a08c17b4af662737c051a41ab9"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "roles_and_completion",
+    "text": "Maya renewed her passport. I paid the electricity bill. I still need to renew my passport. Maybe I will go hiking sometime. I felt tired and wanted room to breathe.",
+    "status": "organized",
+    "issues": [],
+    "save_seconds": 0.002,
+    "organized_seconds": 10.774,
+    "requests": [
+      {
+        "seconds": 10.743,
+        "prompt_characters": 3449,
+        "context_characters": 116,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 2554,
+          "prompt_tokens": 791,
+          "total_tokens": 3345,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"Maya\",\n      \"category\": \"context\",\n      \"value\": \"Renewed passport\",\n      \"evidence\": \"Maya renewed her passport.\"\n    }\n  ],\n  \"personal\": [\n    {\n      \"category\": \"reminder\",\n      \"value\": \"Renew my passport\",\n      \"evidence\": \"I still need to renew my passport.\"\n    }\n  ],\n  \"completed_personal\": [\n    {\n      \"value\": \"Pay the electricity bill\",\n      \"evidence\": \"I paid the electricity bill.\"\n    }\n  ]\n}"
+      }
+    ],
+    "completion_candidates": [
+      {
+        "value": "Pay the electricity bill",
+        "evidence": "I paid the electricity bill."
+      }
+    ],
+    "personal": [
+      {
+        "id": 2,
+        "note_id": 4,
+        "note_revision": 1,
+        "category": "task",
+        "value": "Renew my passport",
+        "evidence": "I still need to renew my passport.",
+        "active": 1
+      }
+    ],
+    "people": [
+      {
+        "id": 1,
+        "name": "Maya",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 3,
+            "person_id": 1,
+            "note_id": 4,
+            "category": "context",
+            "value": "Renewed passport",
+            "evidence": "Maya renewed her passport.",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:59.410Z",
+            "note_revision": 1
+          },
+          {
+            "id": 2,
+            "person_id": 1,
+            "note_id": 2,
+            "category": "interest",
+            "value": "Loves hiking",
+            "evidence": "Loves hiking",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:48.640Z",
+            "note_revision": 1
+          },
+          {
+            "id": 1,
+            "person_id": 1,
+            "note_id": 1,
+            "category": "birthday",
+            "value": "Birthday April 8",
+            "evidence": "Birthday April 8",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:48.640Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 3,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "From your notes",
+              "value": "Renewed passport",
+              "evidence": "Maya renewed her passport.",
+              "noted_at": "2026-10-27",
+              "edited": false
+            },
+            {
+              "memory_id": 1,
+              "note_id": 1,
+              "note_revision": 1,
+              "label": "Birthday",
+              "value": "Birthday April 8",
+              "evidence": "Birthday April 8",
+              "noted_at": "2026-10-20",
+              "edited": false
+            },
+            {
+              "memory_id": 2,
+              "note_id": 2,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "Loves hiking",
+              "evidence": "Loves hiking",
+              "noted_at": "2026-10-20",
+              "edited": false
+            }
+          ],
+          "note_count": 3
+        }
+      }
+    ],
+    "suggestions": [
+      {
+        "id": "7e7d1861572828f52d6b67c125033d1d",
+        "scope": "personal",
+        "category": "task",
+        "kind": "follow_up",
+        "title": "A task for you",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 2,
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "task",
+            "value": "Renew my passport",
+            "evidence": "I still need to renew my passport.",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "7e7d1861572828f52d6b67c125033d1d",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "7e7d1861572828f52d6b67c125033d1d"
+        ]
+      },
+      {
+        "id": "d9d361971037610d9110290cab275662",
+        "scope": "personal",
+        "category": "task",
+        "kind": "follow_up",
+        "title": "A task for you",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 1,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "task",
+            "value": "Pay the electricity bill",
+            "evidence": "Pay the electricity bill",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "status": "done",
+        "completion": {
+          "note_id": 4,
+          "note_revision": 1,
+          "evidence": "I paid the electricity bill."
+        },
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "d9d361971037610d9110290cab275662",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "d9d361971037610d9110290cab275662"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "uncertain_repeat",
+    "text": "I might water the plants every Saturday. I used to run daily. I want to run twice a week. Remind me to look into a new desk. rory started college. I don't need to renew the gym membership.",
+    "status": "organized",
+    "issues": [],
+    "save_seconds": 0.003,
+    "organized_seconds": 8.558,
+    "requests": [
+      {
+        "seconds": 8.532,
+        "prompt_characters": 3408,
+        "context_characters": 2,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 1968,
+          "prompt_tokens": 775,
+          "total_tokens": 2743,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"rory\",\n      \"category\": \"context\",\n      \"value\": \"started college\",\n      \"evidence\": \"rory started college\"\n    }\n  ],\n  \"personal\": [\n    {\n      \"category\": \"reminder\",\n      \"value\": \"water the plants every Saturday\",\n      \"evidence\": \"I might water the plants every Saturday.\"\n    },\n    {\n      \"category\": \"goal\",\n      \"value\": \"run twice a week\",\n      \"evidence\": \"I want to run twice a week.\"\n    },\n    {\n      \"category\": \"reminder\",\n      \"value\": \"look into a new desk\",\n      \"evidence\": \"Remind me to look into a new desk.\"\n    }\n  ],\n  \"completed_personal\": []\n}"
+      }
+    ],
+    "completion_candidates": [],
+    "personal": [
+      {
+        "id": 1,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "reminder",
+        "value": "water the plants every Saturday",
+        "evidence": "I might water the plants every Saturday.",
+        "active": 1
+      },
+      {
+        "id": 2,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "goal",
+        "value": "run twice a week",
+        "evidence": "I want to run twice a week.",
+        "active": 1
+      },
+      {
+        "id": 3,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "reminder",
+        "value": "look into a new desk",
+        "evidence": "Remind me to look into a new desk.",
+        "active": 1
+      }
+    ],
+    "people": [
+      {
+        "id": 1,
+        "name": "Maya",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 2,
+            "person_id": 1,
+            "note_id": 2,
+            "category": "interest",
+            "value": "Loves hiking",
+            "evidence": "Loves hiking",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:59.445Z",
+            "note_revision": 1
+          },
+          {
+            "id": 1,
+            "person_id": 1,
+            "note_id": 1,
+            "category": "birthday",
+            "value": "Birthday April 8",
+            "evidence": "Birthday April 8",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:56:59.445Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 1,
+              "note_id": 1,
+              "note_revision": 1,
+              "label": "Birthday",
+              "value": "Birthday April 8",
+              "evidence": "Birthday April 8",
+              "noted_at": "2026-10-20",
+              "edited": false
+            },
+            {
+              "memory_id": 2,
+              "note_id": 2,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "Loves hiking",
+              "evidence": "Loves hiking",
+              "noted_at": "2026-10-20",
+              "edited": false
+            }
+          ],
+          "note_count": 2
+        }
+      },
+      {
+        "id": 2,
+        "name": "rory",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 3,
+            "person_id": 2,
+            "note_id": 3,
+            "category": "context",
+            "value": "started college",
+            "evidence": "rory started college",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:08.001Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 3,
+              "note_id": 3,
+              "note_revision": 1,
+              "label": "Background",
+              "value": "started college",
+              "evidence": "rory started college",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 1
+        }
+      }
+    ],
+    "suggestions": [
+      {
+        "id": "c9bee07f3b615ed7d86fa74eee05dbe7",
+        "scope": "personal",
+        "category": "reminder",
+        "kind": "date",
+        "title": "Something to remember",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 1,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "reminder",
+            "value": "water the plants every Saturday",
+            "evidence": "I might water the plants every Saturday.",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-31",
+        "due_end": "2026-10-31",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-31",
+        "original_due_end": "2026-10-31",
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "c9bee07f3b615ed7d86fa74eee05dbe7",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "c9bee07f3b615ed7d86fa74eee05dbe7"
+        ]
+      },
+      {
+        "id": "2e0da5d903092566023cda4e3b335721",
+        "scope": "personal",
+        "category": "reminder",
+        "kind": "follow_up",
+        "title": "Something to remember",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 3,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "reminder",
+            "value": "look into a new desk",
+            "evidence": "Remind me to look into a new desk.",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "2e0da5d903092566023cda4e3b335721",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "2e0da5d903092566023cda4e3b335721"
+        ]
+      },
+      {
+        "id": "c75c3dc4cc1511ef838f128a6c23255a",
+        "scope": "personal",
+        "category": "goal",
+        "kind": "follow_up",
+        "title": "A personal goal",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 2,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "goal",
+            "value": "run twice a week",
+            "evidence": "I want to run twice a week.",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "c75c3dc4cc1511ef838f128a6c23255a",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "c75c3dc4cc1511ef838f128a6c23255a"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "aliases",
+    "text": "stewy enjoys photography. I need to call stewy every Friday. Need to get peppers from Marc. I need to pay the phone bill tomorrow.",
+    "status": "organized",
+    "issues": [],
+    "save_seconds": 0.002,
+    "organized_seconds": 12.45,
+    "requests": [
+      {
+        "seconds": 12.42,
+        "prompt_characters": 3421,
+        "context_characters": 68,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 2873,
+          "prompt_tokens": 789,
+          "total_tokens": 3662,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"stewy\",\n      \"category\": \"interest\",\n      \"value\": \"enjoys photography\",\n      \"evidence\": \"stewy enjoys photography.\"\n    },\n    {\n      \"person\": \"stewy\",\n      \"category\": \"plan\",\n      \"value\": \"call stewy every Friday\",\n      \"evidence\": \"I need to call stewy every Friday.\"\n    },\n    {\n      \"person\": \"Marc\",\n      \"category\": \"plan\",\n      \"value\": \"get peppers\",\n      \"evidence\": \"Need to get peppers from Marc.\"\n    }\n  ],\n  \"personal\": [\n    {\n      \"category\": \"task\",\n      \"value\": \"pay the phone bill tomorrow\",\n      \"evidence\": \"I need to pay the phone bill tomorrow.\"\n    }\n  ],\n  \"completed_personal\": []\n}"
+      }
+    ],
+    "completion_candidates": [],
+    "personal": [
+      {
+        "id": 1,
+        "note_id": 4,
+        "note_revision": 1,
+        "category": "task",
+        "value": "pay the phone bill tomorrow",
+        "evidence": "I need to pay the phone bill tomorrow.",
+        "active": 1
+      }
+    ],
+    "people": [
+      {
+        "id": 3,
+        "name": "Marc",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 6,
+            "person_id": 3,
+            "note_id": 4,
+            "category": "plan",
+            "value": "get peppers",
+            "evidence": "Need to get peppers from Marc.",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.471Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 6,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "Current plans",
+              "value": "get peppers",
+              "evidence": "Need to get peppers from Marc.",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 1
+        }
+      },
+      {
+        "id": 1,
+        "name": "Maya",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 2,
+            "person_id": 1,
+            "note_id": 2,
+            "category": "interest",
+            "value": "Loves hiking",
+            "evidence": "Loves hiking",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:08.026Z",
+            "note_revision": 1
+          },
+          {
+            "id": 1,
+            "person_id": 1,
+            "note_id": 1,
+            "category": "birthday",
+            "value": "Birthday April 8",
+            "evidence": "Birthday April 8",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:08.026Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 1,
+              "note_id": 1,
+              "note_revision": 1,
+              "label": "Birthday",
+              "value": "Birthday April 8",
+              "evidence": "Birthday April 8",
+              "noted_at": "2026-10-20",
+              "edited": false
+            },
+            {
+              "memory_id": 2,
+              "note_id": 2,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "Loves hiking",
+              "evidence": "Loves hiking",
+              "noted_at": "2026-10-20",
+              "edited": false
+            }
+          ],
+          "note_count": 2
+        }
+      },
+      {
+        "id": 2,
+        "name": "Stephen",
+        "aliases": [
+          {
+            "name": "stewy",
+            "name_key": "stewy"
+          }
+        ],
+        "memories": [
+          {
+            "id": 5,
+            "person_id": 2,
+            "note_id": 4,
+            "category": "plan",
+            "value": "call stewy every Friday",
+            "evidence": "I need to call stewy every Friday.",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.471Z",
+            "note_revision": 1
+          },
+          {
+            "id": 4,
+            "person_id": 2,
+            "note_id": 4,
+            "category": "interest",
+            "value": "enjoys photography",
+            "evidence": "stewy enjoys photography.",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.470Z",
+            "note_revision": 1
+          },
+          {
+            "id": 3,
+            "person_id": 2,
+            "note_id": 3,
+            "category": "context",
+            "value": "Moved in",
+            "evidence": "Moved in",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:08.026Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 3,
+              "note_id": 3,
+              "note_revision": 1,
+              "label": "From your notes",
+              "value": "Moved in",
+              "evidence": "Moved in",
+              "noted_at": "2026-10-20",
+              "edited": false
+            },
+            {
+              "memory_id": 4,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "enjoys photography",
+              "evidence": "stewy enjoys photography.",
+              "noted_at": "2026-10-27",
+              "edited": false
+            },
+            {
+              "memory_id": 5,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "Current plans",
+              "value": "call stewy every Friday",
+              "evidence": "I need to call stewy every Friday.",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 2
+        }
+      }
+    ],
+    "suggestions": [
+      {
+        "id": "ffc0cd713abd7e3bac6b97cd4103ab55",
+        "scope": "personal",
+        "category": "task",
+        "kind": "date",
+        "title": "A task for you",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 1,
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "task",
+            "value": "pay the phone bill tomorrow",
+            "evidence": "I need to pay the phone bill tomorrow.",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-28",
+        "due_end": "2026-10-28",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-28",
+        "original_due_end": "2026-10-28",
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "ffc0cd713abd7e3bac6b97cd4103ab55",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "ffc0cd713abd7e3bac6b97cd4103ab55"
+        ]
+      },
+      {
+        "id": "1437cef1615a1efa0cc510e4bda937eb",
+        "kind": "date",
+        "title": "Check in on plans with Stephen",
+        "why": "Your writing sets a weekly repeat. Mark done or skip to schedule the next occurrence.",
+        "sources": [
+          {
+            "id": 5,
+            "person_id": 2,
+            "person": "Stephen",
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "plan",
+            "value": "call stewy every Friday",
+            "evidence": "I need to call stewy every Friday.",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-30",
+        "due_end": "2026-10-30",
+        "overdue": false,
+        "scope": "others",
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-30",
+        "original_due_end": "2026-10-30",
+        "due_date_overridden": true,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "fa96801cfe0d8dcb9094b9349ba033d4",
+        "repeat": "weekly",
+        "repeat_origin": "writing",
+        "repeat_anchor_day": 30,
+        "past_occurrence": false,
+        "related_ids": [
+          "1437cef1615a1efa0cc510e4bda937eb"
+        ]
+      },
+      {
+        "id": "066106cc212ef3d81e6734df4754ca27",
+        "kind": "follow_up",
+        "title": "Check in on plans with Marc",
+        "why": "Your writing includes an open plan or intention.",
+        "sources": [
+          {
+            "id": 6,
+            "person_id": 3,
+            "person": "Marc",
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "plan",
+            "value": "get peppers",
+            "evidence": "Need to get peppers from Marc.",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "scope": "others",
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "066106cc212ef3d81e6734df4754ca27",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "066106cc212ef3d81e6734df4754ca27"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "context_heavy",
+    "text": "Maya corrected her birthday: April 18, not April 8. Maya still loves hiking. I promised Maya a trail guide. eli moved in today. I need to submit the application tomorrow.",
+    "status": "organized",
+    "issues": [],
+    "save_seconds": 0.002,
+    "organized_seconds": 12.229,
+    "requests": [
+      {
+        "seconds": 12.175,
+        "prompt_characters": 3565,
+        "context_characters": 180,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 3267,
+          "prompt_tokens": 835,
+          "total_tokens": 4102,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"Maya\",\n      \"category\": \"birthday\",\n      \"value\": \"Birthday April 18\",\n      \"evidence\": \"April 18, not April 8\",\n      \"replaces_id\": 1\n    },\n    {\n      \"person\": \"Maya\",\n      \"category\": \"interest\",\n      \"value\": \"Loves hiking\",\n      \"evidence\": \"loves hiking\"\n    },\n    {\n      \"person\": \"Maya\",\n      \"category\": \"commitment\",\n      \"value\": \"promise a trail guide\",\n      \"evidence\": \"I promised Maya a trail guide\"\n    },\n    {\n      \"person\": \"eli\",\n      \"category\": \"context\",\n      \"value\": \"moved in\",\n      \"evidence\": \"eli moved in today\"\n    }\n  ],\n  \"personal\": [\n    {\n      \"category\": \"task\",\n      \"value\": \"submit the application\",\n      \"evidence\": \"submit the application tomorrow\"\n    }\n  ],\n  \"completed_personal\": []\n}"
+      }
+    ],
+    "completion_candidates": [],
+    "personal": [
+      {
+        "id": 1,
+        "note_id": 78,
+        "note_revision": 1,
+        "category": "task",
+        "value": "submit the application tomorrow",
+        "evidence": "submit the application tomorrow",
+        "active": 1
+      }
+    ],
+    "people": [
+      {
+        "id": 2,
+        "name": "eli",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 81,
+            "person_id": 2,
+            "note_id": 78,
+            "category": "context",
+            "value": "moved in",
+            "evidence": "eli moved in today",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:32.732Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 81,
+              "note_id": 78,
+              "note_revision": 1,
+              "label": "From your notes",
+              "value": "moved in",
+              "evidence": "eli moved in today",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 1
+        }
+      },
+      {
+        "id": 1,
+        "name": "Maya",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 80,
+            "person_id": 1,
+            "note_id": 78,
+            "category": "commitment",
+            "value": "promise a trail guide",
+            "evidence": "I promised Maya a trail guide",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:32.732Z",
+            "note_revision": 1
+          },
+          {
+            "id": 79,
+            "person_id": 1,
+            "note_id": 78,
+            "category": "interest",
+            "value": "Loves hiking",
+            "evidence": "loves hiking",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": 2,
+            "created_at": "2026-10-28T01:57:32.731Z",
+            "note_revision": 1
+          },
+          {
+            "id": 78,
+            "person_id": 1,
+            "note_id": 78,
+            "category": "birthday",
+            "value": "Birthday April 18",
+            "evidence": "April 18, not April 8",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": 1,
+            "created_at": "2026-10-28T01:57:32.730Z",
+            "note_revision": 1
+          },
+          {
+            "id": 77,
+            "person_id": 1,
+            "note_id": 77,
+            "category": "context",
+            "value": "Attended workshop number 74 about a different craft",
+            "evidence": "Attended workshop number 74 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 76,
+            "person_id": 1,
+            "note_id": 76,
+            "category": "context",
+            "value": "Attended workshop number 73 about a different craft",
+            "evidence": "Attended workshop number 73 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 75,
+            "person_id": 1,
+            "note_id": 75,
+            "category": "context",
+            "value": "Attended workshop number 72 about a different craft",
+            "evidence": "Attended workshop number 72 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 74,
+            "person_id": 1,
+            "note_id": 74,
+            "category": "context",
+            "value": "Attended workshop number 71 about a different craft",
+            "evidence": "Attended workshop number 71 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 73,
+            "person_id": 1,
+            "note_id": 73,
+            "category": "context",
+            "value": "Attended workshop number 70 about a different craft",
+            "evidence": "Attended workshop number 70 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 72,
+            "person_id": 1,
+            "note_id": 72,
+            "category": "context",
+            "value": "Attended workshop number 69 about a different craft",
+            "evidence": "Attended workshop number 69 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 71,
+            "person_id": 1,
+            "note_id": 71,
+            "category": "context",
+            "value": "Attended workshop number 68 about a different craft",
+            "evidence": "Attended workshop number 68 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 70,
+            "person_id": 1,
+            "note_id": 70,
+            "category": "context",
+            "value": "Attended workshop number 67 about a different craft",
+            "evidence": "Attended workshop number 67 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 69,
+            "person_id": 1,
+            "note_id": 69,
+            "category": "context",
+            "value": "Attended workshop number 66 about a different craft",
+            "evidence": "Attended workshop number 66 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 68,
+            "person_id": 1,
+            "note_id": 68,
+            "category": "context",
+            "value": "Attended workshop number 65 about a different craft",
+            "evidence": "Attended workshop number 65 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 67,
+            "person_id": 1,
+            "note_id": 67,
+            "category": "context",
+            "value": "Attended workshop number 64 about a different craft",
+            "evidence": "Attended workshop number 64 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 66,
+            "person_id": 1,
+            "note_id": 66,
+            "category": "context",
+            "value": "Attended workshop number 63 about a different craft",
+            "evidence": "Attended workshop number 63 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 65,
+            "person_id": 1,
+            "note_id": 65,
+            "category": "context",
+            "value": "Attended workshop number 62 about a different craft",
+            "evidence": "Attended workshop number 62 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 64,
+            "person_id": 1,
+            "note_id": 64,
+            "category": "context",
+            "value": "Attended workshop number 61 about a different craft",
+            "evidence": "Attended workshop number 61 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 63,
+            "person_id": 1,
+            "note_id": 63,
+            "category": "context",
+            "value": "Attended workshop number 60 about a different craft",
+            "evidence": "Attended workshop number 60 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 62,
+            "person_id": 1,
+            "note_id": 62,
+            "category": "context",
+            "value": "Attended workshop number 59 about a different craft",
+            "evidence": "Attended workshop number 59 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 61,
+            "person_id": 1,
+            "note_id": 61,
+            "category": "context",
+            "value": "Attended workshop number 58 about a different craft",
+            "evidence": "Attended workshop number 58 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 60,
+            "person_id": 1,
+            "note_id": 60,
+            "category": "context",
+            "value": "Attended workshop number 57 about a different craft",
+            "evidence": "Attended workshop number 57 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 59,
+            "person_id": 1,
+            "note_id": 59,
+            "category": "context",
+            "value": "Attended workshop number 56 about a different craft",
+            "evidence": "Attended workshop number 56 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 58,
+            "person_id": 1,
+            "note_id": 58,
+            "category": "context",
+            "value": "Attended workshop number 55 about a different craft",
+            "evidence": "Attended workshop number 55 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 57,
+            "person_id": 1,
+            "note_id": 57,
+            "category": "context",
+            "value": "Attended workshop number 54 about a different craft",
+            "evidence": "Attended workshop number 54 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 56,
+            "person_id": 1,
+            "note_id": 56,
+            "category": "context",
+            "value": "Attended workshop number 53 about a different craft",
+            "evidence": "Attended workshop number 53 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 55,
+            "person_id": 1,
+            "note_id": 55,
+            "category": "context",
+            "value": "Attended workshop number 52 about a different craft",
+            "evidence": "Attended workshop number 52 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 54,
+            "person_id": 1,
+            "note_id": 54,
+            "category": "context",
+            "value": "Attended workshop number 51 about a different craft",
+            "evidence": "Attended workshop number 51 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 53,
+            "person_id": 1,
+            "note_id": 53,
+            "category": "context",
+            "value": "Attended workshop number 50 about a different craft",
+            "evidence": "Attended workshop number 50 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 52,
+            "person_id": 1,
+            "note_id": 52,
+            "category": "context",
+            "value": "Attended workshop number 49 about a different craft",
+            "evidence": "Attended workshop number 49 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 51,
+            "person_id": 1,
+            "note_id": 51,
+            "category": "context",
+            "value": "Attended workshop number 48 about a different craft",
+            "evidence": "Attended workshop number 48 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 50,
+            "person_id": 1,
+            "note_id": 50,
+            "category": "context",
+            "value": "Attended workshop number 47 about a different craft",
+            "evidence": "Attended workshop number 47 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 49,
+            "person_id": 1,
+            "note_id": 49,
+            "category": "context",
+            "value": "Attended workshop number 46 about a different craft",
+            "evidence": "Attended workshop number 46 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 48,
+            "person_id": 1,
+            "note_id": 48,
+            "category": "context",
+            "value": "Attended workshop number 45 about a different craft",
+            "evidence": "Attended workshop number 45 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 47,
+            "person_id": 1,
+            "note_id": 47,
+            "category": "context",
+            "value": "Attended workshop number 44 about a different craft",
+            "evidence": "Attended workshop number 44 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 46,
+            "person_id": 1,
+            "note_id": 46,
+            "category": "context",
+            "value": "Attended workshop number 43 about a different craft",
+            "evidence": "Attended workshop number 43 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 45,
+            "person_id": 1,
+            "note_id": 45,
+            "category": "context",
+            "value": "Attended workshop number 42 about a different craft",
+            "evidence": "Attended workshop number 42 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 44,
+            "person_id": 1,
+            "note_id": 44,
+            "category": "context",
+            "value": "Attended workshop number 41 about a different craft",
+            "evidence": "Attended workshop number 41 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 43,
+            "person_id": 1,
+            "note_id": 43,
+            "category": "context",
+            "value": "Attended workshop number 40 about a different craft",
+            "evidence": "Attended workshop number 40 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 42,
+            "person_id": 1,
+            "note_id": 42,
+            "category": "context",
+            "value": "Attended workshop number 39 about a different craft",
+            "evidence": "Attended workshop number 39 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 41,
+            "person_id": 1,
+            "note_id": 41,
+            "category": "context",
+            "value": "Attended workshop number 38 about a different craft",
+            "evidence": "Attended workshop number 38 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 40,
+            "person_id": 1,
+            "note_id": 40,
+            "category": "context",
+            "value": "Attended workshop number 37 about a different craft",
+            "evidence": "Attended workshop number 37 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 39,
+            "person_id": 1,
+            "note_id": 39,
+            "category": "context",
+            "value": "Attended workshop number 36 about a different craft",
+            "evidence": "Attended workshop number 36 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 38,
+            "person_id": 1,
+            "note_id": 38,
+            "category": "context",
+            "value": "Attended workshop number 35 about a different craft",
+            "evidence": "Attended workshop number 35 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 37,
+            "person_id": 1,
+            "note_id": 37,
+            "category": "context",
+            "value": "Attended workshop number 34 about a different craft",
+            "evidence": "Attended workshop number 34 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 36,
+            "person_id": 1,
+            "note_id": 36,
+            "category": "context",
+            "value": "Attended workshop number 33 about a different craft",
+            "evidence": "Attended workshop number 33 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 35,
+            "person_id": 1,
+            "note_id": 35,
+            "category": "context",
+            "value": "Attended workshop number 32 about a different craft",
+            "evidence": "Attended workshop number 32 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 34,
+            "person_id": 1,
+            "note_id": 34,
+            "category": "context",
+            "value": "Attended workshop number 31 about a different craft",
+            "evidence": "Attended workshop number 31 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 33,
+            "person_id": 1,
+            "note_id": 33,
+            "category": "context",
+            "value": "Attended workshop number 30 about a different craft",
+            "evidence": "Attended workshop number 30 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 32,
+            "person_id": 1,
+            "note_id": 32,
+            "category": "context",
+            "value": "Attended workshop number 29 about a different craft",
+            "evidence": "Attended workshop number 29 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 31,
+            "person_id": 1,
+            "note_id": 31,
+            "category": "context",
+            "value": "Attended workshop number 28 about a different craft",
+            "evidence": "Attended workshop number 28 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 30,
+            "person_id": 1,
+            "note_id": 30,
+            "category": "context",
+            "value": "Attended workshop number 27 about a different craft",
+            "evidence": "Attended workshop number 27 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 29,
+            "person_id": 1,
+            "note_id": 29,
+            "category": "context",
+            "value": "Attended workshop number 26 about a different craft",
+            "evidence": "Attended workshop number 26 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 28,
+            "person_id": 1,
+            "note_id": 28,
+            "category": "context",
+            "value": "Attended workshop number 25 about a different craft",
+            "evidence": "Attended workshop number 25 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 27,
+            "person_id": 1,
+            "note_id": 27,
+            "category": "context",
+            "value": "Attended workshop number 24 about a different craft",
+            "evidence": "Attended workshop number 24 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 26,
+            "person_id": 1,
+            "note_id": 26,
+            "category": "context",
+            "value": "Attended workshop number 23 about a different craft",
+            "evidence": "Attended workshop number 23 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 25,
+            "person_id": 1,
+            "note_id": 25,
+            "category": "context",
+            "value": "Attended workshop number 22 about a different craft",
+            "evidence": "Attended workshop number 22 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 24,
+            "person_id": 1,
+            "note_id": 24,
+            "category": "context",
+            "value": "Attended workshop number 21 about a different craft",
+            "evidence": "Attended workshop number 21 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 23,
+            "person_id": 1,
+            "note_id": 23,
+            "category": "context",
+            "value": "Attended workshop number 20 about a different craft",
+            "evidence": "Attended workshop number 20 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 22,
+            "person_id": 1,
+            "note_id": 22,
+            "category": "context",
+            "value": "Attended workshop number 19 about a different craft",
+            "evidence": "Attended workshop number 19 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 21,
+            "person_id": 1,
+            "note_id": 21,
+            "category": "context",
+            "value": "Attended workshop number 18 about a different craft",
+            "evidence": "Attended workshop number 18 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 20,
+            "person_id": 1,
+            "note_id": 20,
+            "category": "context",
+            "value": "Attended workshop number 17 about a different craft",
+            "evidence": "Attended workshop number 17 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 19,
+            "person_id": 1,
+            "note_id": 19,
+            "category": "context",
+            "value": "Attended workshop number 16 about a different craft",
+            "evidence": "Attended workshop number 16 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 18,
+            "person_id": 1,
+            "note_id": 18,
+            "category": "context",
+            "value": "Attended workshop number 15 about a different craft",
+            "evidence": "Attended workshop number 15 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 17,
+            "person_id": 1,
+            "note_id": 17,
+            "category": "context",
+            "value": "Attended workshop number 14 about a different craft",
+            "evidence": "Attended workshop number 14 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 16,
+            "person_id": 1,
+            "note_id": 16,
+            "category": "context",
+            "value": "Attended workshop number 13 about a different craft",
+            "evidence": "Attended workshop number 13 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 15,
+            "person_id": 1,
+            "note_id": 15,
+            "category": "context",
+            "value": "Attended workshop number 12 about a different craft",
+            "evidence": "Attended workshop number 12 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 14,
+            "person_id": 1,
+            "note_id": 14,
+            "category": "context",
+            "value": "Attended workshop number 11 about a different craft",
+            "evidence": "Attended workshop number 11 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 13,
+            "person_id": 1,
+            "note_id": 13,
+            "category": "context",
+            "value": "Attended workshop number 10 about a different craft",
+            "evidence": "Attended workshop number 10 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 12,
+            "person_id": 1,
+            "note_id": 12,
+            "category": "context",
+            "value": "Attended workshop number 9 about a different craft",
+            "evidence": "Attended workshop number 9 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 11,
+            "person_id": 1,
+            "note_id": 11,
+            "category": "context",
+            "value": "Attended workshop number 8 about a different craft",
+            "evidence": "Attended workshop number 8 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.509Z",
+            "note_revision": 1
+          },
+          {
+            "id": 10,
+            "person_id": 1,
+            "note_id": 10,
+            "category": "context",
+            "value": "Attended workshop number 7 about a different craft",
+            "evidence": "Attended workshop number 7 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.508Z",
+            "note_revision": 1
+          },
+          {
+            "id": 9,
+            "person_id": 1,
+            "note_id": 9,
+            "category": "context",
+            "value": "Attended workshop number 6 about a different craft",
+            "evidence": "Attended workshop number 6 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.508Z",
+            "note_revision": 1
+          },
+          {
+            "id": 8,
+            "person_id": 1,
+            "note_id": 8,
+            "category": "context",
+            "value": "Attended workshop number 5 about a different craft",
+            "evidence": "Attended workshop number 5 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.508Z",
+            "note_revision": 1
+          },
+          {
+            "id": 7,
+            "person_id": 1,
+            "note_id": 7,
+            "category": "context",
+            "value": "Attended workshop number 4 about a different craft",
+            "evidence": "Attended workshop number 4 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.508Z",
+            "note_revision": 1
+          },
+          {
+            "id": 6,
+            "person_id": 1,
+            "note_id": 6,
+            "category": "context",
+            "value": "Attended workshop number 3 about a different craft",
+            "evidence": "Attended workshop number 3 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.508Z",
+            "note_revision": 1
+          },
+          {
+            "id": 5,
+            "person_id": 1,
+            "note_id": 5,
+            "category": "context",
+            "value": "Attended workshop number 2 about a different craft",
+            "evidence": "Attended workshop number 2 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.508Z",
+            "note_revision": 1
+          },
+          {
+            "id": 4,
+            "person_id": 1,
+            "note_id": 4,
+            "category": "context",
+            "value": "Attended workshop number 1 about a different craft",
+            "evidence": "Attended workshop number 1 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.508Z",
+            "note_revision": 1
+          },
+          {
+            "id": 3,
+            "person_id": 1,
+            "note_id": 3,
+            "category": "context",
+            "value": "Attended workshop number 0 about a different craft",
+            "evidence": "Attended workshop number 0 about a different craft",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.508Z",
+            "note_revision": 1
+          },
+          {
+            "id": 2,
+            "person_id": 1,
+            "note_id": 2,
+            "category": "interest",
+            "value": "Loves hiking",
+            "evidence": "Loves hiking",
+            "edited": 0,
+            "active": 0,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.508Z",
+            "note_revision": 1
+          },
+          {
+            "id": 1,
+            "person_id": 1,
+            "note_id": 1,
+            "category": "birthday",
+            "value": "Birthday April 8",
+            "evidence": "Birthday April 8",
+            "edited": 0,
+            "active": 0,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:20.508Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 77,
+              "note_id": 77,
+              "note_revision": 1,
+              "label": "From your notes",
+              "value": "Attended workshop number 74 about a different craft",
+              "evidence": "Attended workshop number 74 about a different craft",
+              "noted_at": "2026-10-20",
+              "edited": false
+            },
+            {
+              "memory_id": 76,
+              "note_id": 76,
+              "note_revision": 1,
+              "label": "From your notes",
+              "value": "Attended workshop number 73 about a different craft",
+              "evidence": "Attended workshop number 73 about a different craft",
+              "noted_at": "2026-10-20",
+              "edited": false
+            },
+            {
+              "memory_id": 78,
+              "note_id": 78,
+              "note_revision": 1,
+              "label": "Birthday",
+              "value": "Birthday April 18",
+              "evidence": "April 18, not April 8",
+              "noted_at": "2026-10-27",
+              "edited": false
+            },
+            {
+              "memory_id": 79,
+              "note_id": 78,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "Loves hiking",
+              "evidence": "loves hiking",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 76
+        }
+      }
+    ],
+    "suggestions": [
+      {
+        "id": "5b9faa92b6d4e36f8b773a049a4379a0",
+        "scope": "personal",
+        "category": "task",
+        "kind": "date",
+        "title": "A task for you",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 1,
+            "note_id": 78,
+            "note_revision": 1,
+            "category": "task",
+            "value": "submit the application tomorrow",
+            "evidence": "submit the application tomorrow",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-28",
+        "due_end": "2026-10-28",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-28",
+        "original_due_end": "2026-10-28",
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "5b9faa92b6d4e36f8b773a049a4379a0",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "5b9faa92b6d4e36f8b773a049a4379a0"
+        ]
+      },
+      {
+        "id": "a82a5c71dd5ac41e0d58cf2ae710a4e8",
+        "kind": "follow_up",
+        "title": "Revisit a commitment with Maya",
+        "why": "Your note includes a promise or commitment worth checking on.",
+        "sources": [
+          {
+            "id": 80,
+            "person_id": 1,
+            "person": "Maya",
+            "note_id": 78,
+            "note_revision": 1,
+            "category": "commitment",
+            "value": "promise a trail guide",
+            "evidence": "I promised Maya a trail guide",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "scope": "others",
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "a82a5c71dd5ac41e0d58cf2ae710a4e8",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "a82a5c71dd5ac41e0d58cf2ae710a4e8"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "long_journal",
+    "text": "I spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nI spent the afternoon walking and enjoying the quiet. Nothing to organize in this reflection.\n\nAmara enjoys painting. I need to refill my prescription tomorrow. I need to water the plants every Saturday. Look into a ceramics class.",
+    "status": "organized",
+    "issues": [],
+    "save_seconds": 0.004,
+    "organized_seconds": 20.996,
+    "requests": [
+      {
+        "seconds": 1.731,
+        "prompt_characters": 4335,
+        "context_characters": 2,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 253,
+          "prompt_tokens": 939,
+          "total_tokens": 1192,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [],\n  \"personal\": [],\n  \"completed_personal\": []\n}"
+      },
+      {
+        "seconds": 19.195,
+        "prompt_characters": 3455,
+        "context_characters": 2,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 1873,
+          "prompt_tokens": 776,
+          "total_tokens": 2649,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"Amara\",\n      \"category\": \"interest\",\n      \"value\": \"painting\",\n      \"evidence\": \"Amara enjoys painting\"\n    }\n  ],\n  \"personal\": [\n    {\n      \"category\": \"reminder\",\n      \"value\": \"refill my prescription tomorrow\",\n      \"evidence\": \"I need to refill my prescription tomorrow.\"\n    },\n    {\n      \"category\": \"task\",\n      \"value\": \"water the plants every Saturday\",\n      \"evidence\": \"I need to water the plants every Saturday.\"\n    },\n    {\n      \"category\": \"plan\",\n      \"value\": \"look into a ceramics class\",\n      \"evidence\": \"Look into a ceramics class.\"\n    }\n  ],\n  \"completed_personal\": []\n}"
+      }
+    ],
+    "completion_candidates": [],
+    "personal": [
+      {
+        "id": 1,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "reminder",
+        "value": "refill my prescription tomorrow",
+        "evidence": "I need to refill my prescription tomorrow.",
+        "active": 1
+      },
+      {
+        "id": 2,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "task",
+        "value": "water the plants every Saturday",
+        "evidence": "I need to water the plants every Saturday.",
+        "active": 1
+      },
+      {
+        "id": 3,
+        "note_id": 3,
+        "note_revision": 1,
+        "category": "plan",
+        "value": "look into a ceramics class",
+        "evidence": "Look into a ceramics class.",
+        "active": 1
+      }
+    ],
+    "people": [
+      {
+        "id": 2,
+        "name": "Amara",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 3,
+            "person_id": 2,
+            "note_id": 3,
+            "category": "interest",
+            "value": "painting",
+            "evidence": "Amara enjoys painting",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:53.783Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 3,
+              "note_id": 3,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "painting",
+              "evidence": "Amara enjoys painting",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 1
+        }
+      },
+      {
+        "id": 1,
+        "name": "Maya",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 2,
+            "person_id": 1,
+            "note_id": 2,
+            "category": "interest",
+            "value": "Loves hiking",
+            "evidence": "Loves hiking",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:32.789Z",
+            "note_revision": 1
+          },
+          {
+            "id": 1,
+            "person_id": 1,
+            "note_id": 1,
+            "category": "birthday",
+            "value": "Birthday April 8",
+            "evidence": "Birthday April 8",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T01:57:32.789Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 1,
+              "note_id": 1,
+              "note_revision": 1,
+              "label": "Birthday",
+              "value": "Birthday April 8",
+              "evidence": "Birthday April 8",
+              "noted_at": "2026-10-20",
+              "edited": false
+            },
+            {
+              "memory_id": 2,
+              "note_id": 2,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "Loves hiking",
+              "evidence": "Loves hiking",
+              "noted_at": "2026-10-20",
+              "edited": false
+            }
+          ],
+          "note_count": 2
+        }
+      }
+    ],
+    "suggestions": [
+      {
+        "id": "20c01b7e1274220590147d29c10b023c",
+        "scope": "personal",
+        "category": "reminder",
+        "kind": "date",
+        "title": "Something to remember",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 1,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "reminder",
+            "value": "refill my prescription tomorrow",
+            "evidence": "I need to refill my prescription tomorrow.",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-28",
+        "due_end": "2026-10-28",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-28",
+        "original_due_end": "2026-10-28",
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "20c01b7e1274220590147d29c10b023c",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "20c01b7e1274220590147d29c10b023c"
+        ]
+      },
+      {
+        "id": "51e7735f15b6ecbd88a0e0d9d6bc8223",
+        "scope": "personal",
+        "category": "task",
+        "kind": "date",
+        "title": "A task for you",
+        "why": "Your writing sets a weekly repeat. Mark done or skip to schedule the next occurrence.",
+        "sources": [
+          {
+            "id": 2,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "task",
+            "value": "water the plants every Saturday",
+            "evidence": "I need to water the plants every Saturday.",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-31",
+        "due_end": "2026-10-31",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-31",
+        "original_due_end": "2026-10-31",
+        "due_date_overridden": true,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "e49c8064430a43bfeffb717f4997ca50",
+        "repeat": "weekly",
+        "repeat_origin": "writing",
+        "repeat_anchor_day": 31,
+        "past_occurrence": false,
+        "related_ids": [
+          "51e7735f15b6ecbd88a0e0d9d6bc8223"
+        ]
+      },
+      {
+        "id": "e22cc4bb74d5a6c4fb43235aa58f3c4a",
+        "scope": "personal",
+        "category": "plan",
+        "kind": "follow_up",
+        "title": "A plan for you",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 3,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "plan",
+            "value": "look into a ceramics class",
+            "evidence": "Look into a ceramics class.",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "e22cc4bb74d5a6c4fb43235aa58f3c4a",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "e22cc4bb74d5a6c4fb43235aa58f3c4a"
+        ]
+      }
+    ]
+  }
+]

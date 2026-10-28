@@ -9,18 +9,20 @@ from .for_you import build_suggestions, date_window, stamp_date
 from .utils import entry_text
 
 WEEKDAYS = 'monday tuesday wednesday thursday friday saturday sunday'.split()
-DAY_WORDS = {'first': 1, 'second': 2, 'third': 3, 'fourth': 4, 'fifth': 5,
-             'sixth': 6, 'seventh': 7, 'eighth': 8, 'ninth': 9, 'tenth': 10,
-             'fifteenth': 15, 'twentieth': 20, 'thirtieth': 30, 'thirty-first': 31, 'last day': 31}
+ORDINALS = 'first second third fourth fifth sixth seventh eighth ninth tenth eleventh twelfth thirteenth fourteenth fifteenth sixteenth seventeenth eighteenth nineteenth twentieth'.split()
+ORDINALS += ['twenty-' + word for word in ORDINALS[:9]] + ['thirtieth', 'thirty-first']
+DAY_WORDS = {word: index for index, word in enumerate(ORDINALS, 1)}
+DAY_WORDS['last day'] = 31
 DAY = r'(?:\d{1,2}(?:st|nd|rd|th)?|' + '|'.join(DAY_WORDS) + ')'
 WEEKLY = re.compile(r'\b(?:every|each)\s+(' + '|'.join(WEEKDAYS) + r')s?\b|\b(' + '|'.join(day + 's' for day in WEEKDAYS) + r')\b', re.I)
 MONTHLY = [re.compile(pattern, re.I) for pattern in (
-    rf'\b(?:on\s+)?(?:the\s+)?({DAY})\s+(?:day\s+)?of\s+(?:each|every|the)\s+month\b',
+    rf'\b(?:on\s+)?(?:the\s+)?({DAY})\s+(?:day\s+)?(?:of\s+)?(?:each|every)\s+month\b',
     rf'\b(?:each|every)\s+month\s+on\s+(?:the\s+)?({DAY})\b',
     rf'\bmonthly\s+on\s+(?:the\s+)?({DAY})\b',
+    rf'\bevery\s+({DAY})\s+of\s+(?:the\s+)?month\b',
 )]
 DAILY = re.compile(r'\b(?:every day|each day|daily|everyday)\b(?=\s*(?:$|[.!?,;]|starting\b|beginning\b|from\b|at\b))', re.I)
-UNSAFE = re.compile(r"\b(?:not|never|no longer|no need|maybe|perhaps|possibly|probably|might|could|would|if|unless|unsure|uncertain|used to|stopped|quit|cancelled|canceled|until|through|between|except|only|other|alternat\w*|twice|biweekly|bimonthly|yearly|annually|weekdays|weekends|or|either)\b|\b(?:don|doesn|didn|won|can|shouldn|wouldn)['’]t\b|\bfor\s+(?:the\s+next\s+)?(?:\d+|a|one|two|three|few)\s+(?:days?|weeks?|months?|years?)\b|\b(?:at|by)\s+\d|\b\d(?::\d\d)?\s*(?:am|pm)\b|\b(?:noon|midnight)\b", re.I)
+UNSAFE = re.compile(r"\b(?:not|never|no longer|no need|maybe|perhaps|possibly|probably|might|could|would|if|unless|unsure|uncertain|used to|stopped|quit|cancelled|canceled|until|through|between|except|only|other|alternat\w*|twice|biweekly|bimonthly|yearly|annually|weekdays|weekends|or|either)\b|\b(?:don|doesn|didn|won|can|shouldn|wouldn)['’]t\b|\bfor\s+(?:the\s+)?(?:(?:next|coming|following)\s+)?(?:(?:\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten|few|this)\s+)?(?:days?|weeks?|months?|years?)\b|\b(?:at|by)\s+\d|\b\d(?::\d\d)?\s*(?:am|pm)\b|\b(?:noon|midnight)\b", re.I)
 INTENTION = re.compile(r"^(?:i\s+(?:need to|have to|must|will|should|want to|plan to|intend to|am going to|promised(?: to)?)\b|remind me\b|remember to\b|need to\b|(?:water|pay|check|call|send|clean|exercise|run|stretch|walk|practice|study|read|write|take|refill|review|update|back up|feed|visit|meet|attend|book|charge|replace|wash|do|meditate|schedule|renew|submit|buy|pick up|bring)\b)", re.I)
 
 
@@ -29,13 +31,14 @@ def source_context(text, evidence):
         return None
     start = text.index(evidence)
     left = max(text.rfind(mark, 0, start) for mark in '.!?\n;') + 1
-    tail = start + len(evidence)
-    end = re.search(r'[.!?\n;]', text[tail:])
-    return text[left:tail + end.start() if end else len(text)].strip()
+    end = re.search(r'[.!?\n;]', text[start:])
+    return text[left:start + end.end() if end else len(text)].strip()
 
 
 def detect_repeat(value, evidence, text, anchor):
     """Return a calendar rule only when the source clearly supports one cadence."""
+    if anchor.year > 9998:
+        return None
     context = source_context(text, evidence)
     if not context or '?' in context or UNSAFE.search(context) or UNSAFE.search(value):
         return None
@@ -53,10 +56,15 @@ def detect_repeat(value, evidence, text, anchor):
     start_match = re.search(r'\b(?:starting|beginning|from)\s+(?:on\s+)?(.+)', evidence, re.I)
     start = anchor
     if start_match:
-        window = date_window(start_match[1], anchor, anchor)
+        try:
+            window = date_window(start_match[1], anchor, anchor)
+        except (ValueError, OverflowError):
+            return None
         if not window or window[0] != window[1]:
             return None
         start = window[0]
+    if start.year > 9998:
+        return None
     if not markers and start_match:
         match = re.search(r'\b(?:weekly|every week|each week|monthly|every month|each month)\b', evidence, re.I)
         if match:
@@ -74,6 +82,9 @@ def detect_repeat(value, evidence, text, anchor):
     # Additional cadence words or multiple weekdays are unsupported combinations.
     remainder = evidence[:marker.start()] + evidence[marker.end():]
     if re.search(r'\b(?:every|each|daily|weekly|monthly)\b', remainder, re.I):
+        return None
+    outside_start = re.split(r'\b(?:starting|beginning|from)\b', remainder, flags=re.I)[0]
+    if re.search(r'\b(?:' + '|'.join(WEEKDAYS) + r')s?\b', outside_start, re.I):
         return None
     if frequency == 'weekly':
         if day is not None:
