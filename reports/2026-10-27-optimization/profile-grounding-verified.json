@@ -1,0 +1,888 @@
+[
+  {
+    "case": "compound_journal",
+    "text": "Today was a mix of catching up and trying to get my own life organized.\n\nI had coffee with stewy, who told me he\u2019s learning photography. He wants to try taking portraits but hasn\u2019t picked a camera yet. I promised I\u2019d send him that beginner\u2019s guide I bookmarked.\n\nI also met someone new, Leila, at the caf\u00e9. She\u2019s studying architecture and loves making pottery. Her birthday is November 12. We talked about checking out a ceramics class sometime, but nothing is booked.\n\nMaya corrected me about her birthday\u2014it\u2019s April 18, not April 8. She\u2019s still really into hiking. I need to send Maya the trail guide tomorrow.\n\nFor myself, I need to renew my driver\u2019s license by October 30 and book a dentist appointment. I should water the plants every Saturday and pay rent on the first of each month. Remind me to look into a better desk chair, though I haven\u2019t decided what kind.\n\nI paid the electricity bill today. Maya renewed her passport, but I still need to renew mine.\n\nI might start running every morning, but I\u2019m not committing to that yet. Mostly, I felt a little overwhelmed today and wanted some room to breathe.",
+    "status": "organized",
+    "issues": [],
+    "save_seconds": 0.012,
+    "organized_seconds": 345.869,
+    "requests": [
+      {
+        "seconds": 88.705,
+        "prompt_characters": 5391,
+        "context_characters": 180,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 8192,
+          "prompt_tokens": 1306,
+          "total_tokens": 9498,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": null
+      },
+      {
+        "seconds": 54.883,
+        "prompt_characters": 4534,
+        "context_characters": 2,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 6492,
+          "prompt_tokens": 1057,
+          "total_tokens": 7549,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"stewy\",\n      \"category\": \"interest\",\n      \"value\": \"learning photography\",\n      \"evidence\": \"he\u2019s learning photography\"\n    },\n    {\n      \"person\": \"Leila\",\n      \"category\": \"context\",\n      \"value\": \"studying architecture\",\n      \"evidence\": \"She\u2019s studying architecture\"\n    },\n    {\n      \"person\": \"Leila\",\n      \"category\": \"interest\",\n      \"value\": \"making pottery\",\n      \"evidence\": \"loves making pottery\"\n    },\n    {\n      \"person\": \"Leila\",\n      \"category\": \"birthday\",\n      \"value\": \"birthday is November 12\",\n      \"evidence\": \"Her birthday is November 12\"\n    },\n    {\n      \"person\": \"Leila\",\n      \"category\": \"plan\",\n      \"value\": \"checking out a ceramics class\",\n      \"evidence\": \"checking out a ceramics class\"\n    },\n    {\n      \"person\": \"stewy\",\n      \"category\": \"commitment\",\n      \"value\": \"send him that beginner\u2019s guide\",\n      \"evidence\": \"I promised I\u2019d send him that beginner\u2019s guide I bookmarked.\"\n    },\n    {\n      \"person\": \"Leila\",\n      \"category\": \"relationship\",\n      \"value\": \"met Leila\",\n      \"evidence\": \"met someone new, Leila\"\n    }\n  ],\n  \"personal\": [\n    {\n      \"category\": \"goal\",\n      \"value\": \"get my own life organized\",\n      \"evidence\": \"trying to get my own life organized\"\n    }\n  ],\n  \"completed_personal\": [\n    {\n      \"value\": \"Have coffee with stewy\",\n      \"evidence\": \"I had coffee with stewy\"\n    },\n    {\n      \"value\": \"Meet someone new, Leila\",\n      \"evidence\": \"I met someone new, Leila\"\n    }\n  ]\n}"
+      },
+      {
+        "seconds": 39.081,
+        "prompt_characters": 4919,
+        "context_characters": 2,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 5396,
+          "prompt_tokens": 1126,
+          "total_tokens": 6522,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"stewy\",\n      \"category\": \"interest\",\n      \"value\": \"learning photography\",\n      \"evidence\": \"he\u2019s learning photography\"\n    },\n    {\n      \"person\": \"Leila\",\n      \"category\": \"context\",\n      \"value\": \"studying architecture\",\n      \"evidence\": \"She\u2019s studying architecture\"\n    },\n    {\n      \"person\": \"Leila\",\n      \"category\": \"interest\",\n      \"value\": \"making pottery\",\n      \"evidence\": \"loves making pottery\"\n    },\n    {\n      \"person\": \"Leila\",\n      \"category\": \"birthday\",\n      \"value\": \"November 12\",\n      \"evidence\": \"Her birthday is November 12\"\n    },\n    {\n      \"person\": \"Leila\",\n      \"category\": \"plan\",\n      \"value\": \"checking out a ceramics class\",\n      \"evidence\": \"checking out a ceramics class\"\n    },\n    {\n      \"person\": \"stewy\",\n      \"category\": \"commitment\",\n      \"value\": \"send him that beginner\u2019s guide I bookmarked\",\n      \"evidence\": \"I promised I\u2019d send him that beginner\u2019s guide I bookmarked\"\n    },\n    {\n      \"person\": \"stewy\",\n      \"category\": \"relationship\",\n      \"value\": \"had coffee with\",\n      \"evidence\": \"I had coffee with stewy\"\n    }\n  ],\n  \"personal\": [],\n  \"completed_personal\": [\n    {\n      \"value\": \"have coffee with stewy\",\n      \"evidence\": \"I had coffee with stewy\"\n    }\n  ]\n}"
+      },
+      {
+        "seconds": 30.303,
+        "prompt_characters": 4408,
+        "context_characters": 180,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 3653,
+          "prompt_tokens": 1034,
+          "total_tokens": 4687,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"Maya\",\n      \"category\": \"birthday\",\n      \"value\": \"Birthday April 18\",\n      \"evidence\": \"April 18, not April 8\"\n    },\n    {\n      \"person\": \"Maya\",\n      \"category\": \"interest\",\n      \"value\": \"still really into hiking\",\n      \"evidence\": \"still really into hiking\"\n    }\n  ],\n  \"personal\": [\n    {\n      \"category\": \"task\",\n      \"value\": \"renew my driver\u2019s license\",\n      \"evidence\": \"renew my driver\u2019s license\"\n    },\n    {\n      \"category\": \"task\",\n      \"value\": \"book a dentist appointment\",\n      \"evidence\": \"book a dentist appointment\"\n    },\n    {\n      \"category\": \"reminder\",\n      \"value\": \"water the plants every Saturday\",\n      \"evidence\": \"water the plants every Saturday\"\n    },\n    {\n      \"category\": \"reminder\",\n      \"value\": \"pay rent on the first of each month\",\n      \"evidence\": \"pay rent on the first of each month\"\n    },\n    {\n      \"category\": \"reminder\",\n      \"value\": \"look into a better desk chair\",\n      \"evidence\": \"look into a better desk chair\"\n    }\n  ],\n  \"completed_personal\": [\n    {\n      \"value\": \"Pay the electricity bill\",\n      \"evidence\": \"I paid the electricity bill today.\"\n    }\n  ]\n}"
+      },
+      {
+        "seconds": 35.773,
+        "prompt_characters": 4754,
+        "context_characters": 42,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 4919,
+          "prompt_tokens": 1074,
+          "total_tokens": 5993,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [\n    {\n      \"person\": \"Maya\",\n      \"category\": \"birthday\",\n      \"value\": \"April 18\",\n      \"evidence\": \"April 18\"\n    },\n    {\n      \"person\": \"Maya\",\n      \"category\": \"interest\",\n      \"value\": \"hiking\",\n      \"evidence\": \"really into hiking\"\n    },\n    {\n      \"person\": \"Maya\",\n      \"category\": \"plan\",\n      \"value\": \"send Maya the trail guide tomorrow\",\n      \"evidence\": \"send Maya the trail guide tomorrow\"\n    },\n    {\n      \"person\": \"Maya\",\n      \"category\": \"context\",\n      \"value\": \"Maya renewed her passport\",\n      \"evidence\": \"Maya renewed her passport\"\n    }\n  ],\n  \"personal\": [\n    {\n      \"category\": \"task\",\n      \"value\": \"renew my driver\u2019s license by October 30\",\n      \"evidence\": \"renew my driver\u2019s license by October 30\"\n    },\n    {\n      \"category\": \"plan\",\n      \"value\": \"book a dentist appointment\",\n      \"evidence\": \"book a dentist appointment\"\n    },\n    {\n      \"category\": \"reminder\",\n      \"value\": \"water the plants every Saturday\",\n      \"evidence\": \"water the plants every Saturday\"\n    },\n    {\n      \"category\": \"reminder\",\n      \"value\": \"pay rent on the first of each month\",\n      \"evidence\": \"pay rent on the first of each month\"\n    },\n    {\n      \"category\": \"reminder\",\n      \"value\": \"look into a better desk chair\",\n      \"evidence\": \"look into a better desk chair\"\n    }\n  ],\n  \"completed_personal\": [\n    {\n      \"value\": \"Pay the electricity bill\",\n      \"evidence\": \"I paid the electricity bill today.\"\n    }\n  ]\n}"
+      },
+      {
+        "seconds": 5.449,
+        "prompt_characters": 3855,
+        "context_characters": 2,
+        "status": 200,
+        "usage": {
+          "completion_tokens": 612,
+          "prompt_tokens": 859,
+          "total_tokens": 1471,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        },
+        "response_content": "{\n  \"memories\": [],\n  \"personal\": [],\n  \"completed_personal\": []\n}"
+      }
+    ],
+    "completion_candidates": [
+      {
+        "value": "Pay the electricity bill",
+        "evidence": "I paid the electricity bill today."
+      }
+    ],
+    "personal": [
+      {
+        "id": 2,
+        "note_id": 4,
+        "note_revision": 1,
+        "category": "task",
+        "value": "renew my driver\u2019s license by October 30",
+        "evidence": "renew my driver\u2019s license by October 30",
+        "active": 1
+      },
+      {
+        "id": 3,
+        "note_id": 4,
+        "note_revision": 1,
+        "category": "plan",
+        "value": "book a dentist appointment",
+        "evidence": "book a dentist appointment",
+        "active": 1
+      },
+      {
+        "id": 4,
+        "note_id": 4,
+        "note_revision": 1,
+        "category": "reminder",
+        "value": "water the plants every Saturday",
+        "evidence": "water the plants every Saturday",
+        "active": 1
+      },
+      {
+        "id": 5,
+        "note_id": 4,
+        "note_revision": 1,
+        "category": "task",
+        "value": "pay rent on the first of each month",
+        "evidence": "pay rent on the first of each month",
+        "active": 1
+      },
+      {
+        "id": 6,
+        "note_id": 4,
+        "note_revision": 1,
+        "category": "reminder",
+        "value": "look into a better desk chair",
+        "evidence": "look into a better desk chair",
+        "active": 1
+      }
+    ],
+    "people": [
+      {
+        "id": 3,
+        "name": "Leila",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 7,
+            "person_id": 3,
+            "note_id": 4,
+            "category": "plan",
+            "value": "checking out a ceramics class",
+            "evidence": "checking out a ceramics class",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:45:25.481Z",
+            "note_revision": 1
+          },
+          {
+            "id": 6,
+            "person_id": 3,
+            "note_id": 4,
+            "category": "birthday",
+            "value": "November 12",
+            "evidence": "Her birthday is November 12",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:45:25.481Z",
+            "note_revision": 1
+          },
+          {
+            "id": 5,
+            "person_id": 3,
+            "note_id": 4,
+            "category": "interest",
+            "value": "making pottery",
+            "evidence": "loves making pottery",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:45:25.481Z",
+            "note_revision": 1
+          },
+          {
+            "id": 4,
+            "person_id": 3,
+            "note_id": 4,
+            "category": "context",
+            "value": "studying architecture",
+            "evidence": "She\u2019s studying architecture",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:45:25.481Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 4,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "From your notes",
+              "value": "studying architecture",
+              "evidence": "She\u2019s studying architecture",
+              "noted_at": "2026-10-27",
+              "edited": false
+            },
+            {
+              "memory_id": 6,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "Birthday",
+              "value": "November 12",
+              "evidence": "Her birthday is November 12",
+              "noted_at": "2026-10-27",
+              "edited": false
+            },
+            {
+              "memory_id": 5,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "making pottery",
+              "evidence": "loves making pottery",
+              "noted_at": "2026-10-27",
+              "edited": false
+            },
+            {
+              "memory_id": 7,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "Current plans",
+              "value": "checking out a ceramics class",
+              "evidence": "checking out a ceramics class",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 1
+        }
+      },
+      {
+        "id": 1,
+        "name": "Maya",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 13,
+            "person_id": 1,
+            "note_id": 4,
+            "category": "context",
+            "value": "Maya renewed her passport",
+            "evidence": "Maya renewed her passport",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:45:25.482Z",
+            "note_revision": 1
+          },
+          {
+            "id": 12,
+            "person_id": 1,
+            "note_id": 4,
+            "category": "plan",
+            "value": "send Maya the trail guide tomorrow",
+            "evidence": "send Maya the trail guide tomorrow",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:45:25.481Z",
+            "note_revision": 1
+          },
+          {
+            "id": 11,
+            "person_id": 1,
+            "note_id": 4,
+            "category": "interest",
+            "value": "hiking",
+            "evidence": "really into hiking",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:45:25.481Z",
+            "note_revision": 1
+          },
+          {
+            "id": 10,
+            "person_id": 1,
+            "note_id": 4,
+            "category": "birthday",
+            "value": "April 18",
+            "evidence": "April 18",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": 1,
+            "created_at": "2026-10-28T04:45:25.481Z",
+            "note_revision": 1
+          },
+          {
+            "id": 2,
+            "person_id": 1,
+            "note_id": 2,
+            "category": "interest",
+            "value": "Loves hiking",
+            "evidence": "Loves hiking",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:39:39.620Z",
+            "note_revision": 1
+          },
+          {
+            "id": 1,
+            "person_id": 1,
+            "note_id": 1,
+            "category": "birthday",
+            "value": "Birthday April 8",
+            "evidence": "Birthday April 8",
+            "edited": 0,
+            "active": 0,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:39:39.620Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 13,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "From your notes",
+              "value": "Maya renewed her passport",
+              "evidence": "Maya renewed her passport",
+              "noted_at": "2026-10-27",
+              "edited": false
+            },
+            {
+              "memory_id": 10,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "Birthday",
+              "value": "April 18",
+              "evidence": "April 18",
+              "noted_at": "2026-10-27",
+              "edited": false
+            },
+            {
+              "memory_id": 11,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "hiking",
+              "evidence": "really into hiking",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 2
+        }
+      },
+      {
+        "id": 2,
+        "name": "stewy",
+        "aliases": [],
+        "memories": [
+          {
+            "id": 9,
+            "person_id": 2,
+            "note_id": 4,
+            "category": "relationship",
+            "value": "had coffee with",
+            "evidence": "I had coffee with stewy",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:45:25.481Z",
+            "note_revision": 1
+          },
+          {
+            "id": 8,
+            "person_id": 2,
+            "note_id": 4,
+            "category": "commitment",
+            "value": "send him that beginner\u2019s guide I bookmarked",
+            "evidence": "I promised I\u2019d send him that beginner\u2019s guide I bookmarked",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:45:25.481Z",
+            "note_revision": 1
+          },
+          {
+            "id": 3,
+            "person_id": 2,
+            "note_id": 4,
+            "category": "interest",
+            "value": "learning photography",
+            "evidence": "he\u2019s learning photography",
+            "edited": 0,
+            "active": 1,
+            "replaces_id": null,
+            "created_at": "2026-10-28T04:45:25.481Z",
+            "note_revision": 1
+          }
+        ],
+        "about": {
+          "facts": [
+            {
+              "memory_id": 3,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "Interests",
+              "value": "learning photography",
+              "evidence": "he\u2019s learning photography",
+              "noted_at": "2026-10-27",
+              "edited": false
+            },
+            {
+              "memory_id": 9,
+              "note_id": 4,
+              "note_revision": 1,
+              "label": "Connections",
+              "value": "had coffee with",
+              "evidence": "I had coffee with stewy",
+              "noted_at": "2026-10-27",
+              "edited": false
+            }
+          ],
+          "note_count": 1
+        }
+      }
+    ],
+    "suggestions": [
+      {
+        "id": "833ba776d68e3c219c9414d241404611",
+        "kind": "date",
+        "title": "Check in on plans with Maya",
+        "why": "This plan has a date or date range coming up.",
+        "sources": [
+          {
+            "id": 12,
+            "person_id": 1,
+            "person": "Maya",
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "plan",
+            "value": "send Maya the trail guide tomorrow",
+            "evidence": "send Maya the trail guide tomorrow",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-28",
+        "due_end": "2026-10-28",
+        "overdue": false,
+        "scope": "others",
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-28",
+        "original_due_end": "2026-10-28",
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "833ba776d68e3c219c9414d241404611",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "833ba776d68e3c219c9414d241404611"
+        ]
+      },
+      {
+        "id": "f05d981921a0a05f61c0a8d647ab7b8a",
+        "scope": "personal",
+        "category": "task",
+        "kind": "date",
+        "title": "A task for you",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 2,
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "task",
+            "value": "renew my driver\u2019s license by October 30",
+            "evidence": "renew my driver\u2019s license by October 30",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-30",
+        "due_end": "2026-10-30",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-30",
+        "original_due_end": "2026-10-30",
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "f05d981921a0a05f61c0a8d647ab7b8a",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "f05d981921a0a05f61c0a8d647ab7b8a"
+        ]
+      },
+      {
+        "id": "931b0520f4206259143871d0060b329b",
+        "scope": "personal",
+        "category": "reminder",
+        "kind": "date",
+        "title": "Something to remember",
+        "why": "Your writing sets a weekly repeat. Mark done or skip to schedule the next occurrence.",
+        "sources": [
+          {
+            "id": 4,
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "reminder",
+            "value": "water the plants every Saturday",
+            "evidence": "water the plants every Saturday",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-10-31",
+        "due_end": "2026-10-31",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": "2026-10-31",
+        "original_due_end": "2026-10-31",
+        "due_date_overridden": true,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "c9bee07f3b615ed7d86fa74eee05dbe7",
+        "repeat": "weekly",
+        "repeat_origin": "writing",
+        "repeat_anchor_day": 31,
+        "past_occurrence": false,
+        "related_ids": [
+          "931b0520f4206259143871d0060b329b"
+        ]
+      },
+      {
+        "id": "8dae56b79061d262dad491cddf711598",
+        "scope": "personal",
+        "category": "task",
+        "kind": "date",
+        "title": "A task for you",
+        "why": "Your writing sets a monthly repeat. Mark done or skip to schedule the next occurrence.",
+        "sources": [
+          {
+            "id": 5,
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "task",
+            "value": "pay rent on the first of each month",
+            "evidence": "pay rent on the first of each month",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-11-01",
+        "due_end": "2026-11-01",
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": true,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "0a46ab01daad504273b8aa6bf68db2db",
+        "repeat": "monthly",
+        "repeat_origin": "writing",
+        "repeat_anchor_day": 1,
+        "past_occurrence": false,
+        "related_ids": [
+          "8dae56b79061d262dad491cddf711598"
+        ]
+      },
+      {
+        "id": "5ada3b1832c1b346d471234e2a1636ad",
+        "kind": "follow_up",
+        "title": "Revisit a commitment with stewy",
+        "why": "Your note includes a promise or commitment worth checking on.",
+        "sources": [
+          {
+            "id": 8,
+            "person_id": 2,
+            "person": "stewy",
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "commitment",
+            "value": "send him that beginner\u2019s guide I bookmarked",
+            "evidence": "I promised I\u2019d send him that beginner\u2019s guide I bookmarked",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "scope": "others",
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "5ada3b1832c1b346d471234e2a1636ad",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "5ada3b1832c1b346d471234e2a1636ad"
+        ]
+      },
+      {
+        "id": "ea6e6911e134107861c2394268cd4224",
+        "scope": "personal",
+        "category": "plan",
+        "kind": "follow_up",
+        "title": "A plan for you",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 3,
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "plan",
+            "value": "book a dentist appointment",
+            "evidence": "book a dentist appointment",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "ea6e6911e134107861c2394268cd4224",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "ea6e6911e134107861c2394268cd4224"
+        ]
+      },
+      {
+        "id": "ff1f39fd3d73ed6397c3da670a8edc02",
+        "scope": "personal",
+        "category": "reminder",
+        "kind": "follow_up",
+        "title": "Something to remember",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 6,
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "reminder",
+            "value": "look into a better desk chair",
+            "evidence": "look into a better desk chair",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "ff1f39fd3d73ed6397c3da670a8edc02",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "ff1f39fd3d73ed6397c3da670a8edc02"
+        ]
+      },
+      {
+        "id": "dd63fdc19c15c4be4f23a0187ca46222",
+        "kind": "date",
+        "title": "Make room for Leila\u2019s birthday",
+        "why": "Their birthday is coming up in the next 30 days.",
+        "sources": [
+          {
+            "id": 6,
+            "person_id": 3,
+            "person": "Leila",
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "birthday",
+            "value": "November 12",
+            "evidence": "Her birthday is November 12",
+            "edited": 0
+          }
+        ],
+        "due_start": "2026-11-12",
+        "due_end": "2026-11-12",
+        "overdue": false,
+        "scope": "others",
+        "status": "open",
+        "can_schedule": false,
+        "original_due_start": "2026-11-12",
+        "original_due_end": "2026-11-12",
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "dd63fdc19c15c4be4f23a0187ca46222",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "dd63fdc19c15c4be4f23a0187ca46222"
+        ]
+      },
+      {
+        "id": "daccdb805c8d553d5be1db017f2ff612",
+        "kind": "follow_up",
+        "title": "Check in on plans with Leila",
+        "why": "Your writing includes an open plan or intention.",
+        "sources": [
+          {
+            "id": 7,
+            "person_id": 3,
+            "person": "Leila",
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "plan",
+            "value": "checking out a ceramics class",
+            "evidence": "checking out a ceramics class",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "scope": "others",
+        "status": "open",
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "daccdb805c8d553d5be1db017f2ff612",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "daccdb805c8d553d5be1db017f2ff612"
+        ]
+      },
+      {
+        "id": "535fc51f0786b9d35d70d3f2cc669513",
+        "kind": "connection",
+        "title": "A possible connection: Leila & stewy",
+        "why": "Their notes both touch on a creative activity. This could be a reason to check in or suggest something together.",
+        "sources": [
+          {
+            "id": 7,
+            "person_id": 3,
+            "person": "Leila",
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "plan",
+            "value": "checking out a ceramics class",
+            "evidence": "checking out a ceramics class",
+            "edited": 0
+          },
+          {
+            "id": 3,
+            "person_id": 2,
+            "person": "stewy",
+            "note_id": 4,
+            "note_revision": 1,
+            "category": "interest",
+            "value": "learning photography",
+            "evidence": "he\u2019s learning photography",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "scope": "others",
+        "status": "open",
+        "can_schedule": false,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "535fc51f0786b9d35d70d3f2cc669513",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "535fc51f0786b9d35d70d3f2cc669513"
+        ]
+      },
+      {
+        "id": "d9d361971037610d9110290cab275662",
+        "scope": "personal",
+        "category": "task",
+        "kind": "follow_up",
+        "title": "A task for you",
+        "why": "You mentioned this in your writing.",
+        "sources": [
+          {
+            "id": 1,
+            "note_id": 3,
+            "note_revision": 1,
+            "category": "task",
+            "value": "Pay the electricity bill",
+            "evidence": "Pay the electricity bill",
+            "person_id": null,
+            "person": "You",
+            "edited": 0
+          }
+        ],
+        "due_start": null,
+        "due_end": null,
+        "overdue": false,
+        "status": "done",
+        "completion": {
+          "note_id": 4,
+          "note_revision": 1,
+          "evidence": "I paid the electricity bill today."
+        },
+        "can_schedule": true,
+        "original_due_start": null,
+        "original_due_end": null,
+        "due_date_overridden": false,
+        "snoozed_until": null,
+        "snoozed": false,
+        "base_id": "d9d361971037610d9110290cab275662",
+        "repeat": null,
+        "repeat_origin": null,
+        "repeat_anchor_day": null,
+        "past_occurrence": false,
+        "related_ids": [
+          "d9d361971037610d9110290cab275662"
+        ]
+      }
+    ]
+  }
+]

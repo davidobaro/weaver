@@ -28,9 +28,9 @@ I might start running every morning, but I’m not committing to that yet. Mostl
 })
 original_validate = inference.validate_meaning
 
-def validate_with_progress(result, note):
+def validate_with_progress(result, note, identity_context=''):
     try:
-        original_validate(result, note)
+        original_validate(result, note, identity_context)
     except inference.ExtractionValidationError as exc:
         print('Validation feedback:', str(exc), flush=True)
         raise

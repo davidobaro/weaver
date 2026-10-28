@@ -181,7 +181,7 @@ def test_failed_later_section_publishes_nothing_and_retry_saves_all(tmp_path, mo
     monkeypatch.setattr(main, 'extract_memories', inference.extract_memories)
     fail = True
     sections = []
-    def extract(note, known):
+    def extract(note, known, identity_context=''):
         sections.append(note)
         if 'ceramics' in note and fail:
             raise inference.InferenceError('Temporary interruption; writing is saved.')
@@ -229,7 +229,7 @@ def test_transient_failures_eventually_stop(provider):
 
 
 def test_more_than_40_distinct_facts_are_not_silently_dropped(monkeypatch):
-    def extract(note, known):
+    def extract(note, known, identity_context=''):
         return inference.parse_extraction(json.dumps({'memories': [memory(note,
             f'Detail {index} from {note.strip()[-25:]}') for index in range(30)]}), note)
     monkeypatch.setattr(inference, '_request_chunk', extract)

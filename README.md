@@ -239,3 +239,11 @@ Tests: `.venv/bin/python -m pytest tests/test_auto_recurrence.py -q`.
 Extraction sends only relevant profile context for each entry section, validates source quotes and actor/timing consistency, and retries explicit omissions rather than silently accepting them. Equivalent task cards retain all source links; their completion, date, snooze and repeat controls update the grouped sources together. Different people, schedules and monthly anchors stay separate. For you prioritizes overdue items, today, upcoming dates and commitments ahead of open-ended suggestions.
 
 See the [October 27 optimization report](reports/2026-10-27-optimization/report.md) for the eight-case live benchmark, measured processing times, limitations and regression coverage.
+
+### Profile facts across pronouns and entry sections
+
+Weaver retains source hints for clear learning/studying passages and a coordinated hobby, such as “She’s studying architecture and loves making pottery.” Education and hobbies are checked separately against the extracted profile facts. Demonstrated omissions receive targeted corrective feedback; a combined-section check can recover just the affected paragraph.
+
+When a long paragraph is divided, up to 1,200 preceding characters from that same paragraph travel as identity context. That context can identify the person behind “he” or “she”; quoted evidence must still come from the section being organized. Ambiguous actors, unnamed relatives, uncertain statements and questions do not force a guessed person. Source checks remain bounded rather than general coreference resolution, and existing organized entries are not automatically backfilled.
+
+Tests: `.venv/bin/python -m pytest tests/test_profile_grounding.py -q`. See the [profile grounding report](reports/2026-10-28-profile-grounding/report.md) for the original misses, changes and live verification.
