@@ -451,6 +451,7 @@ def search(q: str = Query(default='', max_length=200),
            limit: int = Query(default=20, ge=1, le=100), timezone: str = 'America/New_York'):
     check_timezone(timezone)
     with database() as db:
+        db.execute('BEGIN')
         return search_workspace(db, q, _suggestions(db, timezone, True), kind, limit)
 
 

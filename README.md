@@ -211,3 +211,11 @@ Snoozing hides the current occurrence without changing its cadence. Editing a re
 Repeating reminders are completed explicitly with the check button; completion statements extracted from writing do not automatically advance a repeat. Source links are preserved, deleting/retiring all source facts removes the series from views, and profile merges/undo retain the schedule and occurrence history. Schedules and occurrence history persist in SQLite and are included in JSON export. Optional browser notifications apply separately to each due occurrence.
 
 Recurrence tests: `.venv/bin/python -m pytest tests/test_recurrence.py -q`.
+
+### Workspace search
+
+Use **Search** in the top bar (or **⌘K / Ctrl+K**) from any page. Search spans current entries, profiles and confirmed aliases, active person memories, and personal/people tasks, including done, dismissed, snoozed, and past recurring occurrences. The persistent You profile is included. Filters show totals for Entries, People, Memories, and Tasks; results link to profiles and source entries, retaining the exact source revision for extracted facts.
+
+This is local keyword search, with case/accent normalization, word-prefix matching, and all query words matched in any order. Exact names/titles rank higher; open tasks rank ahead of otherwise equivalent completed occurrences. It does not use embeddings, synonyms, or natural-language question answering, and makes no Nebius/Nemotron calls. Entries awaiting organization are searchable as writing; retired facts are excluded from memory/profile/task matches while the original writing remains searchable as an entry. Deleted entries disappear from results.
+
+Queries are limited to 200 characters, results initially show 20, and Show more expands up to 100 before asking for a narrower query. Query/filter state lives only in the mounted search component. Debouncing and stale-response guards prevent old requests from replacing newer results. The existing journal entry filter and People name filter remain available. Search tests: `.venv/bin/python -m pytest tests/test_search.py -q`.

@@ -88,13 +88,13 @@ export default function WorkspaceSearch({revision, onSource, onPerson}: {
       if (event.target === event.currentTarget && (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom)) setOpen(false)
     }}>
       <div className="workspace-search-heading"><h2 id={titleId}>Find a thread.</h2><button className="icon-button" aria-label="Close workspace search" onClick={() => setOpen(false)}><X size={18} /></button></div>
-      <label className="workspace-search-input"><Search size={18} /><span className="sr-only">Search your workspace</span><input ref={input} autoComplete="off" spellCheck={false} value={query} maxLength={200} placeholder="A person, a memory, a task…" onChange={event => { setQuery(event.target.value); setLimit(20) }} onKeyDown={event => {
+      <div className="workspace-search-input"><Search size={18} /><input aria-label="Search your workspace" ref={input} autoComplete="off" spellCheck={false} value={query} maxLength={200} placeholder="A person, a memory, a task…" onChange={event => { setQuery(event.target.value); setLimit(20) }} onKeyDown={event => {
         if (event.key === 'ArrowDown' || event.key === 'Enter') {
           const first = results.current?.querySelector<HTMLButtonElement>('.search-result-title')
           if (first) { event.preventDefault(); if (event.key === 'Enter') first.click(); else first.focus() }
         }
-      }} />{query && <button className="icon-button" aria-label="Clear workspace search" onClick={() => { setQuery(''); setLimit(20); input.current?.focus() }}><X size={14} /></button>}</label>
-      <div className="workspace-search-filters" role="group" aria-label="Filter search results">{filters.map(item => <button key={item.kind} aria-pressed={filter === item.kind} onClick={() => { setFilter(item.kind); setLimit(20) }}>{item.label}{response && <span>{item.kind === 'all' ? Object.values(response.counts).reduce((a, b) => a + b, 0) : response.counts[item.kind]}</span>}</button>)}</div>
+      }} />{query && <button className="icon-button" aria-label="Clear workspace search" onClick={() => { setQuery(''); setLimit(20); input.current?.focus() }}><X size={14} /></button>}</div>
+      <div className="workspace-search-filters" role="group" aria-label="Filter search results">{filters.map(item => <button key={item.kind} aria-label={item.label} aria-pressed={filter === item.kind} onClick={() => { setFilter(item.kind); setLimit(20) }}>{item.label}{response && <span>{item.kind === 'all' ? Object.values(response.counts).reduce((a, b) => a + b, 0) : response.counts[item.kind]}</span>}</button>)}</div>
       <div className="workspace-search-summary" role="status" aria-live="polite">{loading ? <><LoaderCircle size={13} className="spin" /> Searching…</> : error ? 'Search couldn’t load.' : response ? `${response.total} ${response.total === 1 ? 'result' : 'results'}${response.total > response.results.length ? ` · showing ${response.results.length}` : ''}` : 'Your entries and everything woven from them.'}</div>
       <div className="workspace-search-results" ref={results} aria-label="Search results" aria-busy={loading}>
         {error && <div className="workspace-search-empty"><p role="alert">{error}</p><button className="small-button" onClick={() => setRefresh(value => value + 1)}>Try again</button></div>}
@@ -105,7 +105,7 @@ export default function WorkspaceSearch({revision, onSource, onPerson}: {
           return <article className="workspace-search-result" key={item.id}>
             <div className="search-result-meta"><span><Icon size={13} />{labels[item.kind]}</span>{item.person && <span>{item.person}</span>}{item.entry_date && <span>{formatDate(item.entry_date)}</span>}{item.status && <span>{item.snoozed ? 'Snoozed' : item.status === 'open' ? 'Open' : item.status === 'done' ? 'Done' : 'Dismissed'}{item.past_occurrence ? ' · Past occurrence' : ''}</span>}{item.due_start && <span>Due {formatDate(item.due_start)}</span>}{item.repeat && <span>{item.repeat}</span>}</div>
             <button className="search-result-title" onClick={() => item.kind === 'person' && item.person_id != null ? openPerson(item.person_id) : readSource(item)}>{item.title}<ArrowUpRight size={14} /></button>
-            <p>{item.excerpt}</p>
+            {item.excerpt !== item.title && <p>{item.excerpt}</p>}
             <div className="search-result-links">{item.note_id && item.kind !== 'entry' && <button className="source-link" onClick={() => readSource(item)}>Read source entry <ArrowUpRight size={11} /></button>}{item.kind !== 'person' && item.person_id != null && <button className="source-link" onClick={() => openPerson(item.person_id!)}>Open profile <ArrowUpRight size={11} /></button>}{item.kind === 'task' && item.person_id == null && <button className="source-link" onClick={() => openPerson(0)}>Your tasks <ArrowUpRight size={11} /></button>}</div>
           </article>
         })}
