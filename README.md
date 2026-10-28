@@ -4,7 +4,9 @@ Weaver is a journal and note taker that quietly connects what you write. Capture
 
 ## Status
 
-First working prototype for the Nebius × NVIDIA Global AI Hackathon, Personal AI track.
+Working prototype for the Nebius × NVIDIA Global AI Hackathon, targeting the Best Apps and Agents track.
+
+See the [hackathon readiness checklist](docs/hackathon-readiness.md) for verified requirements, remaining submission items, and the October 30 deadline.
 
 Drop in a note → Weaver saves it immediately → Nemotron connects people, categorizes details, and updates profiles in the background. Notes, profiles, organization status, and correction history persist in SQLite. No review or approval step is required for remembering notes. Inference runs on NVIDIA Nemotron through Nebius Token Factory; there is no simulated AI fallback.
 
@@ -117,7 +119,7 @@ Open **For you** in the sidebar for a short list of source-backed suggestions:
 
 Each suggestion shows the underlying memory, its reason, and expandable source quotes with links to the note and person. **Mark done** and **Dismiss** hide a card; **Done & dismissed → Restore** brings it back. Actions persist across restarts and are included in JSON export. Corrected/inactive memories and deleted source notes stop contributing suggestions. Birthday actions apply to that occurrence, so a birthday can surface again next year.
 
-This first version derives suggestions locally from the memories already extracted by Nemotron. Opening For you makes no additional model call. It refreshes while the page is open and when the window regains focus; it does not send notifications, contact people, create calendar events, or run a scheduled external agent.
+This first version derives suggestions locally from the memories already extracted by Nemotron. Opening For you makes no additional model call. It refreshes while the page is open and when the window regains focus; optional browser alerts can notify you while Weaver is open. It does not contact people, create calendar events, or run a scheduled external agent.
 
 ## People: About
 
@@ -170,7 +172,15 @@ Section results are source-checked, deduplicated, and published in one transacti
 
 Automatic organization now extracts the author's own tasks, plans, loose reminders, and goals alongside named-person memories. Personal items require exact source quotes and never create a person record. New entries extract both kinds together; existing writing remains intact. Personal reminders are versioned through their source entries and retired when the source is revised or deleted. Repeated equivalent personal wording shares suggestion status and can retain several source links.
 
-For you and the journal sidebar have All / Personal / Others filters, alongside suggestion-type filters. People always includes a You tab, even before any other profiles exist. You lists personal intentions; other profiles list the plans and commitments involving that person, including undated plans outside the main suggestion feed's date windows. Profile tasks use compact rows grouped by date passed, upcoming, and anytime, with small check and dismiss buttons plus source links. Done, dismissed, and restored statuses are shared across views. These are in-app reminders; no external notifications or calendar changes are made.
+For you and the journal sidebar have All / Personal / Others filters, alongside suggestion-type filters. People always includes a You tab, even before any other profiles exist. You lists personal intentions; other profiles list the plans and commitments involving that person, including undated plans outside the main suggestion feed's date windows. Profile tasks use compact rows grouped by date passed, upcoming, and anytime, with small check and dismiss buttons plus source links. Done, dismissed, and restored statuses are shared across views. Optional browser alerts are available; no calendar changes are made.
+
+### Due dates and snooze
+
+Use the small calendar button on a task to set a due date. Leaving the date empty moves it to Anytime; **Use date from writing** restores the original inferred date or date range. Manual dates change when a task needs attention without rewriting its source entry or resetting Done/Dismiss status.
+
+The clock button snoozes a reminder until Tomorrow, In 3 days, Next week, or a custom future day. Its due date stays unchanged. Snoozed items remain accessible in a separate **Snoozed** section, with **Bring back** to return them immediately. They rejoin the active list on the selected local calendar day; open views refresh on focus and at least once a minute. Marking done, dismissing, or restoring clears a pending snooze.
+
+Timing changes persist in SQLite and are shared by For you, the journal sidebar, You, and individual profiles. Open views and tabs refresh after changes; when browser storage is unavailable the periodic refresh remains a fallback. Duplicate sources share timing, profile merges preserve it, and inactive/deleted source facts do not appear just because an old timing setting exists. Timing settings are included in JSON export. Birthdays and possible connections are not editable task reminders. Optional browser notifications can surface due and returning snoozed reminders; calendar integration is not enabled.
 
 ### Completion from journal entries
 
@@ -179,3 +189,25 @@ New entries can record explicit completed personal actions, such as “I renewed
 Automatic completions appear under Done & dismissed with a Completion source link. They are source-backed events rather than manual status changes. Editing, restoring, or deleting a completion entry reconciles its automatic effect; stale in-flight extraction cannot publish a completion after an edit. Explicit Done, Dismiss, and Restore actions take precedence, and Restore stays open across reloads. New reminders written after an earlier completion remain open. Completed actions are not recreated as reminders from the same source passage.
 
 Typographic apostrophe variants in extracted names and quotes are mapped back to the exact original source spelling; paraphrased quotes and expanded names remain invalid. Exact existing facts are normalized as duplicates, without turning real corrections into duplicates or merging similar names.
+
+### Optional browser alerts
+
+Use the bell in the top bar to enable or turn off alerts for this browser. Nothing requests notification permission until you click **Enable alerts**. Supported desktop browsers require localhost or HTTPS and browser/OS notification permission. Mobile browsers may not support this first version.
+
+While Weaver is open, it checks once a minute and on focus or suggestion changes. Due and overdue reminders, including dated birthdays, and returning snoozed items are grouped into a single alert. Undated items wait until they have a due date or a snooze return date; completed, dismissed, currently snoozed items and suggested connections do not alert. Dates have day precision: delivery starts on the relevant local calendar day, with no specific time of day. Browser suspension or device sleep can delay alerts until Weaver resumes.
+
+Alerts contain only a count; clicking one opens For you. SQLite stores device-scoped receipts so tabs/reloads do not repeat the same due-date or snooze occurrence. Unacknowledged delivery reservations expire after two minutes; network acknowledgment failures are retried before new alerts. Delivery is best effort: browser/OS suppression and a crash between showing and recording an alert cannot be fully detected. Opt-in and a random device identifier live in browser storage; clearing it resets that browser's preference and delivery identity. Notifications do not work after Weaver is closed; there is no push service or background scheduler.
+
+Notification tests: `.venv/bin/python -m pytest tests/test_notifications.py -q` and `node --test tests/notification_delivery.test.mjs`.
+
+### Repeating reminders
+
+Use the small repeat icon beside a task's calendar and snooze controls in For you, the journal sidebar, You, or a person's profile. Choose **Daily**, **Weekly**, or **Monthly** and a next due date. Repeat is explicit in this version; writing a recurring intention does not automatically turn on a schedule.
+
+**Mark done** or **Skip** archives that occurrence and schedules the next date after both its current due date and today in your chosen timezone. Daily/weekly repeats preserve their calendar cadence. Monthly repeats preserve the chosen day (January 31 → February 28/29 → March 31). An unresolved occurrence stays pending/overdue; missed periods do not create an accumulating backlog when you handle it. Completing a future occurrence early advances from that scheduled date.
+
+Snoozing hides the current occurrence without changing its cadence. Editing a repeating task's due date changes the anchor for subsequent repeats. Choose **Doesn't repeat** to keep the pending occurrence as a one-off reminder. Completed/skipped occurrences remain in Done & dismissed with their dates; Restore reopens only that historical occurrence without changing the ongoing schedule. Restored historical occurrences have check/dismiss controls, rather than editable dates/repeats.
+
+Repeating reminders are completed explicitly with the check button; completion statements extracted from writing do not automatically advance a repeat. Source links are preserved, deleting/retiring all source facts removes the series from views, and profile merges/undo retain the schedule and occurrence history. Schedules and occurrence history persist in SQLite and are included in JSON export. Optional browser notifications apply separately to each due occurrence.
+
+Recurrence tests: `.venv/bin/python -m pytest tests/test_recurrence.py -q`.

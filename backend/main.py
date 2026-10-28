@@ -9,12 +9,18 @@ from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
+from typing import Literal
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from uuid import UUID, uuid4
+from .notifications import claim as claim_notifications
+from .recurrence import act_on_occurrence
+from .search import search_workspace
+
 from .inference import InferenceError, extract_memories
-from .models import NoteInput, ReviewInput, MemoryEdit, SuggestionAction, AliasInput, PersonPair, EntryEdit, EntryRestore
+from .models import NoteInput, ReviewInput, MemoryEdit, SuggestionAction, ReminderTiming, ReminderRepeat, AliasInput, PersonPair, EntryEdit, EntryRestore
 from .for_you import build_suggestions
 from .utils import name_key, entry_text
 from .personal import publish_personal
@@ -63,6 +69,28 @@ def initialize():
             );
             CREATE TABLE IF NOT EXISTS suggestion_actions (
                 suggestion_id TEXT PRIMARY KEY, status TEXT NOT NULL,
+                updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+            );
+            CREATE TABLE IF NOT EXISTS reminder_recurrence (
+                suggestion_id TEXT PRIMARY KEY, frequency TEXT NOT NULL,
+                anchor_date TEXT NOT NULL, next_due TEXT NOT NULL,
+                occurrence_key TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS reminder_occurrences (
+                suggestion_id TEXT NOT NULL, occurrence_key TEXT NOT NULL,
+                due_date TEXT NOT NULL, frequency TEXT NOT NULL, status TEXT NOT NULL,
+                PRIMARY KEY(suggestion_id, occurrence_key)
+            );
+            CREATE TABLE IF NOT EXISTS notification_receipts (
+                device TEXT NOT NULL, event_key TEXT NOT NULL,
+                token TEXT NOT NULL, claimed_at REAL NOT NULL,
+                delivered INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY(device, event_key)
+            );
+            CREATE TABLE IF NOT EXISTS suggestion_timing (
+                suggestion_id TEXT PRIMARY KEY, due_date TEXT,
+                due_overridden INTEGER NOT NULL DEFAULT 0,
+                snoozed_until TEXT,
                 updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
             );
         ''')
@@ -393,6 +421,9 @@ def export():
         result['personal_reminders'] = [dict(row) for row in db.execute('SELECT * FROM personal_reminders ORDER BY id')]
         result['personal_completions'] = [dict(row) for row in db.execute('SELECT * FROM personal_completions ORDER BY id')]
         result['suggestion_actions'] = [dict(row) for row in db.execute('SELECT * FROM suggestion_actions')]
+        result['suggestion_timing'] = [dict(row) for row in db.execute('SELECT * FROM suggestion_timing')]
+        result['reminder_recurrence'] = [dict(row) for row in db.execute('SELECT * FROM reminder_recurrence')]
+        result['reminder_occurrences'] = [dict(row) for row in db.execute('SELECT * FROM reminder_occurrences')]
     return JSONResponse(result, headers={'Content-Disposition': 'attachment; filename="weaver-export.json"'})
 
 
@@ -414,18 +445,116 @@ def for_you(timezone: str = 'America/New_York', include_all_plans: bool = False)
         return _suggestions(db, timezone, include_all_plans)
 
 
+@app.get('/api/search')
+def search(q: str = Query(default='', max_length=200),
+           kind: Literal['all', 'entry', 'person', 'memory', 'task'] = 'all',
+           limit: int = Query(default=20, ge=1, le=100), timezone: str = 'America/New_York'):
+    check_timezone(timezone)
+    with database() as db:
+        return search_workspace(db, q, _suggestions(db, timezone, True), kind, limit)
+
+
+@app.post('/api/notifications/{device}/claim')
+def claim_reminders(device: UUID, timezone: str = 'America/New_York'):
+    check_timezone(timezone)
+    with database() as db:
+        db.execute('BEGIN IMMEDIATE')
+        return claim_notifications(db, str(device), _suggestions(db, timezone, True))
+
+
+@app.post('/api/notifications/{device}/{token}/ack')
+def acknowledge_reminders(device: UUID, token: UUID):
+    with database() as db:
+        db.execute('UPDATE notification_receipts SET delivered = 1 WHERE device = ? AND token = ?',
+                   (str(device), str(token)))
+    return {'saved': True}
+
+
 @app.patch('/api/for-you/{suggestion_id}')
 def act_on_suggestion(suggestion_id: str, body: SuggestionAction, timezone: str = 'America/New_York', include_all_plans: bool = False):
     check_timezone(timezone)
     with database() as db:
         db.execute('BEGIN IMMEDIATE')
         current = _suggestions(db, timezone, include_all_plans)
-        if not any(item['id'] == suggestion_id for item in current['suggestions']):
+        item = next((item for item in current['suggestions'] if item['id'] == suggestion_id), None)
+        if item is None:
             raise HTTPException(409, 'This suggestion has changed. Refresh to see the latest.')
+        try:
+            if act_on_occurrence(db, item, body.status, current['today']):
+                return {'status': body.status}
+        except (ValueError, OverflowError):
+            raise HTTPException(422, 'The next occurrence is outside the supported calendar. Turn off repeat or choose an earlier date.')
         db.execute('''INSERT INTO suggestion_actions(suggestion_id, status) VALUES (?,?)
                        ON CONFLICT(suggestion_id) DO UPDATE SET status = excluded.status,
                        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')''', (suggestion_id, body.status))
+        db.execute('UPDATE suggestion_timing SET snoozed_until = NULL WHERE suggestion_id = ?', (suggestion_id,))
     return {'status': body.status}
+
+
+@app.patch('/api/for-you/{suggestion_id}/timing')
+def set_reminder_timing(suggestion_id: str, body: ReminderTiming, timezone: str = 'America/New_York'):
+    check_timezone(timezone)
+    fields = body.model_fields_set
+    if not fields or fields == {'reset_due_date'} and not body.reset_due_date:
+        raise HTTPException(422, 'Choose a due date or snooze setting.')
+    if body.reset_due_date and 'due_date' in fields:
+        raise HTTPException(422, 'Choose a due date or restore the date from your writing, not both.')
+    with database() as db:
+        db.execute('BEGIN IMMEDIATE')
+        feed = _suggestions(db, timezone, True)
+        item = next((item for item in feed['suggestions'] if item['id'] == suggestion_id), None)
+        if item is None:
+            raise HTTPException(409, 'This suggestion has changed. Refresh to see the latest.')
+        if not item['can_schedule']:
+            raise HTTPException(422, 'Only tasks, plans, reminders, goals and commitments can be scheduled.')
+        if body.snoozed_until and body.snoozed_until.isoformat() <= feed['today']:
+            raise HTTPException(422, 'Choose a snooze date after today.')
+        suggestion_id = item['base_id']
+        if item['repeat'] and ('due_date' in fields or body.reset_due_date):
+            if not body.due_date or body.due_date.year > 9998:
+                raise HTTPException(422, 'Repeating reminders need a due date before year 9999.')
+            db.execute('UPDATE reminder_recurrence SET next_due = ?, anchor_date = ? WHERE suggestion_id = ?',
+                       (body.due_date.isoformat(), body.due_date.isoformat(), suggestion_id))
+        db.execute('INSERT OR IGNORE INTO suggestion_timing(suggestion_id) VALUES (?)', (suggestion_id,))
+        if 'due_date' in fields or body.reset_due_date:
+            db.execute('UPDATE suggestion_timing SET due_date = ?, due_overridden = ? WHERE suggestion_id = ?',
+                       (body.due_date.isoformat() if body.due_date else None, int(not body.reset_due_date), suggestion_id))
+        if 'snoozed_until' in fields:
+            db.execute('UPDATE suggestion_timing SET snoozed_until = ? WHERE suggestion_id = ?',
+                       (body.snoozed_until.isoformat() if body.snoozed_until else None, suggestion_id))
+        db.execute("UPDATE suggestion_timing SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE suggestion_id = ?", (suggestion_id,))
+    return {'saved': True}
+
+
+@app.patch('/api/for-you/{suggestion_id}/repeat')
+def set_reminder_repeat(suggestion_id: str, body: ReminderRepeat, timezone: str = 'America/New_York'):
+    check_timezone(timezone)
+    with database() as db:
+        db.execute('BEGIN IMMEDIATE')
+        feed = _suggestions(db, timezone, True)
+        item = next((item for item in feed['suggestions'] if item['id'] == suggestion_id), None)
+        if not item:
+            raise HTTPException(409, 'This reminder has changed. Refresh to see the latest.')
+        if not item['can_schedule'] or item['status'] != 'open':
+            raise HTTPException(422, 'Choose an open task, plan, reminder, goal or commitment.')
+        base_id = item['base_id']
+        due = body.start_date.isoformat() if body.start_date else item['due_start']
+        if body.frequency:
+            if not due or int(due[:4]) > 9998:
+                raise HTTPException(422, 'Choose a first due date before year 9999.')
+            existing = db.execute('SELECT * FROM reminder_recurrence WHERE suggestion_id = ?', (base_id,)).fetchone()
+            anchor = existing['anchor_date'] if existing and existing['frequency'] == body.frequency and existing['next_due'] == due else due
+            db.execute('''INSERT INTO reminder_recurrence(suggestion_id,frequency,anchor_date,next_due,occurrence_key)
+                          VALUES (?,?,?,?,?) ON CONFLICT(suggestion_id) DO UPDATE SET
+                          frequency=excluded.frequency,anchor_date=excluded.anchor_date,next_due=excluded.next_due''',
+                       (base_id, body.frequency, anchor, due, uuid4().hex))
+        else:
+            db.execute('DELETE FROM reminder_recurrence WHERE suggestion_id = ?', (base_id,))
+        # Turning repeat off keeps the pending occurrence as a one-off task.
+        db.execute('''INSERT INTO suggestion_timing(suggestion_id,due_date,due_overridden) VALUES (?,?,1)
+                      ON CONFLICT(suggestion_id) DO UPDATE SET due_date=excluded.due_date,due_overridden=1''', (base_id, due))
+        db.execute("INSERT INTO suggestion_actions(suggestion_id,status) VALUES (?,'open') ON CONFLICT(suggestion_id) DO UPDATE SET status='open'", (base_id,))
+    return {'saved': True}
 
 
 @app.exception_handler(IdentityError)

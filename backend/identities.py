@@ -90,15 +90,37 @@ def fingerprint(db, person_id):
     return hashlib.sha256(json.dumps(snapshot, sort_keys=True).encode()).hexdigest()
 
 
-def carry_actions(db, before, after):
+def carry_actions(db, before, after, prefer_current=False):
     def signature(item):
-        return item['kind'], tuple(sorted(source['id'] for source in item['sources']))
-    previous = {signature(item): item for item in before['suggestions']}
+        category = 'connection' if item['kind'] == 'connection' else item['sources'][0]['category']
+        return category, tuple(sorted(source['id'] for source in item['sources']))
+    previous = {signature(item): item for item in before['suggestions'] if not item.get('past_occurrence')}
     for item in after['suggestions']:
+        if item.get('past_occurrence'):
+            continue
         old = previous.get(signature(item))
         if old and old['status'] != 'open' and item['status'] == 'open':
             db.execute('INSERT OR IGNORE INTO suggestion_actions(suggestion_id,status) VALUES (?,?)',
                        (item['id'], old['status']))
+        old_base = old.get('base_id', old['id']) if old else None
+        new_base = item.get('base_id', item['id'])
+        if old and old_base != new_base:
+            # Undo must carry changes made while merged, rather than revive an
+            # obsolete schedule left under the original profile's identity.
+            insert = 'INSERT OR REPLACE' if prefer_current else 'INSERT OR IGNORE'
+            if prefer_current:
+                db.execute('INSERT OR REPLACE INTO suggestion_actions(suggestion_id,status) VALUES (?,?)',
+                           (new_base, old['status']))
+                db.execute('DELETE FROM reminder_recurrence WHERE suggestion_id = ?', (new_base,))
+            db.execute(f'''{insert} INTO suggestion_timing(suggestion_id,due_date,due_overridden,snoozed_until)
+                          SELECT ?,due_date,due_overridden,snoozed_until FROM suggestion_timing WHERE suggestion_id=?''',
+                       (new_base, old_base))
+            db.execute(f'''{insert} INTO reminder_recurrence(suggestion_id,frequency,anchor_date,next_due,occurrence_key)
+                          SELECT ?,frequency,anchor_date,next_due,occurrence_key FROM reminder_recurrence WHERE suggestion_id=?''',
+                       (new_base, old_base))
+            db.execute(f'''{insert} INTO reminder_occurrences(suggestion_id,occurrence_key,due_date,frequency,status)
+                          SELECT ?,occurrence_key,due_date,frequency,status FROM reminder_occurrences WHERE suggestion_id=?''',
+                       (new_base, old_base))
 
 
 def merge_people(db, source_id, target_id):
@@ -109,7 +131,7 @@ def merge_people(db, source_id, target_id):
     target = db.execute('SELECT * FROM people WHERE id = ?', (target_id,)).fetchone()
     if not source or not target:
         raise IdentityError('A profile changed. Refresh before merging.')
-    suggestions_before = build_suggestions(db)
+    suggestions_before = build_suggestions(db, include_all_plans=True)
     snapshot = {'source': dict(source), 'source_aliases': aliases_for(db, source_id),
                 'target_aliases': aliases_for(db, target_id),
                 'memory_ids': [row['id'] for row in db.execute('SELECT id FROM memories WHERE person_id = ?', (source_id,))],
@@ -118,7 +140,7 @@ def merge_people(db, source_id, target_id):
     db.execute('UPDATE person_aliases SET person_id = ? WHERE person_id = ?', (target_id, source_id))
     db.execute('DELETE FROM people WHERE id = ?', (source_id,))
     add_alias(db, target_id, source['name'])
-    carry_actions(db, suggestions_before, build_suggestions(db))
+    carry_actions(db, suggestions_before, build_suggestions(db, include_all_plans=True))
     merge_id = uuid.uuid4().hex
     db.execute('INSERT INTO people_merges(id,target_id,source_name,snapshot,fingerprint) VALUES (?,?,?,?,?)',
                (merge_id, target_id, source['name'], json.dumps(snapshot), fingerprint(db, target_id)))
@@ -133,7 +155,7 @@ def undo_merge(db, merge_id):
     if fingerprint(db, event['target_id']) != event['fingerprint']:
         raise IdentityError('This profile has changed since the merge. Move individual memories with Edit instead.')
     before = json.loads(event['snapshot'])
-    suggestions_before = build_suggestions(db)
+    suggestions_before = build_suggestions(db, include_all_plans=True)
     db.execute('DELETE FROM person_aliases WHERE person_id = ?', (event['target_id'],))
     for alias in before['target_aliases']:
         add_alias(db, event['target_id'], alias['name'])
@@ -150,5 +172,5 @@ def undo_merge(db, merge_id):
             if left != right:
                 db.execute('INSERT OR IGNORE INTO distinct_people VALUES (?,?)', (left, right))
     db.execute('UPDATE people_merges SET undone = 1 WHERE id = ?', (merge_id,))
-    carry_actions(db, suggestions_before, build_suggestions(db))
+    carry_actions(db, suggestions_before, build_suggestions(db, include_all_plans=True), prefer_current=True)
     return {'person_id': restored_id}

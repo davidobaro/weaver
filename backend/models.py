@@ -39,6 +39,19 @@ class Extraction(BaseModel):
     completed_personal: list[PersonalCompletion] = Field(default_factory=list, max_length=40)
 
 
+class ReminderTiming(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    due_date: date | None = None
+    reset_due_date: bool = False
+    snoozed_until: date | None = None
+
+
+class ReminderRepeat(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    frequency: Literal['daily', 'weekly', 'monthly'] | None
+    start_date: date | None = None
+
+
 class EntryContent(BaseModel):
     text: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=5000)]
     kind: Literal['note', 'journal'] = 'note'

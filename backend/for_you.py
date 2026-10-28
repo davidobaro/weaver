@@ -129,6 +129,9 @@ def source(memory):
 def build_suggestions(db, today=None, timezone='America/New_York', include_all_plans=False):
     zone = ZoneInfo(timezone)
     today = today or datetime.now(zone).date()
+    from .recurrence import apply_recurrence
+    recurring = {row['suggestion_id'] for row in db.execute('SELECT suggestion_id FROM reminder_recurrence')}
+    timing = {row['suggestion_id']: dict(row) for row in db.execute('SELECT * FROM suggestion_timing')}
     memories = [dict(row) for row in db.execute('''
         SELECT m.*, p.name AS person, n.created_at AS noted_at,
                CASE WHEN v.note_id IS NOT NULL THEN v.entry_date ELSE n.entry_date END AS entry_date
@@ -149,6 +152,8 @@ def build_suggestions(db, today=None, timezone='America/New_York', include_all_p
         anchor = entry_anchor(memory, zone)
         window = date_window(memory['value'], anchor, today, birthday=category == 'birthday')
         identity = (memory['person_id'], category, normalized(memory['value']))
+        manual = timing.get(key_for(category, *identity))
+        has_timing = key_for(category, *identity) in recurring or bool(manual and (manual['due_overridden'] or manual['snoozed_until']))
         item = None
         if category == 'birthday':
             if len(birthdays[memory['person_id']]) > 1:
@@ -161,7 +166,7 @@ def build_suggestions(db, today=None, timezone='America/New_York', include_all_p
             # Do not present a third party's already completed promise as an
             # outstanding task. The application itself never completes a task.
             if not re.search(r'\b(?:already sent|already done|fulfilled|completed|kept my promise|no longer need|cancelled|canceled)\b', memory['value'], re.I):
-                if not window or window[0] <= today + timedelta(days=30):
+                if has_timing or not window or window[0] <= today + timedelta(days=30):
                     item = {'id': key_for('commitment', *identity), 'kind': 'follow_up',
                             'title': f"Revisit a commitment with {memory['person']}",
                             'why': 'Your note includes a promise or commitment worth checking on.', 'rank': 1}
@@ -171,7 +176,7 @@ def build_suggestions(db, today=None, timezone='America/New_York', include_all_p
             # Some older extractions classified completed life updates as plans.
             if include_all_plans and re.search(r'\b(?:started|graduated(?: from)?)\s+(?:college|school|university|a new job)\b|^moved\b', memory['value'], re.I):
                 continue
-            if include_all_plans or window and today <= window[1] and window[0] <= today + timedelta(days=14):
+            if include_all_plans or has_timing or window and today <= window[1] and window[0] <= today + timedelta(days=14):
                 item = {'id': key_for('plan', *identity), 'kind': 'date',
                         'title': f"Check in on plans with {memory['person']}",
                         'why': 'This plan has a date or date range coming up.', 'rank': 2}
@@ -255,7 +260,7 @@ def build_suggestions(db, today=None, timezone='America/New_York', include_all_p
         completions.setdefault(row['reminder_id'], dict(row))
     actions = {row['suggestion_id']: row['status'] for row in db.execute('SELECT suggestion_id, status FROM suggestion_actions')}
     unique = {item['id']: item for item in items}
-    result = sorted(unique.values(), key=lambda item: (item['rank'], item['due_start'] or '9999', item['id']))
+    result = list(unique.values())
     for item in result:
         item.setdefault('scope', 'others')
         automatic = item['scope'] == 'personal' and all(source['id'] in completions for source in item['sources'])
@@ -263,5 +268,24 @@ def build_suggestions(db, today=None, timezone='America/New_York', include_all_p
         if automatic and item['id'] not in actions:
             event = max((completions[source['id']] for source in item['sources']), key=lambda event: event['id'])
             item['completion'] = {field: event[field] for field in ('note_id', 'note_revision', 'evidence')}
+        item['can_schedule'] = item['scope'] == 'personal' or item['kind'] != 'connection' and all(
+            source['category'] in {'plan', 'commitment'} for source in item['sources'])
+        item['original_due_start'] = item['due_start']
+        item['original_due_end'] = item['due_end']
+        preference = timing.get(item['id'], {})
+        item['due_date_overridden'] = bool(preference.get('due_overridden'))
+        if item['due_date_overridden']:
+            item['due_start'] = item['due_end'] = preference['due_date']
+            item['overdue'] = bool(item['due_end'] and item['due_end'] < today.isoformat())
+            if item['scope'] == 'personal' or item['sources'][0]['category'] == 'plan':
+                item['kind'] = 'date' if item['due_start'] else 'follow_up'
+            if item['scope'] == 'personal':
+                item['rank'] = 2 if item['due_start'] else 1
+            item['why'] = 'You chose this due date.' if item['due_start'] else 'You kept this in Anytime.'
+        item['snoozed_until'] = preference.get('snoozed_until')
+        item['snoozed'] = bool(item['status'] == 'open' and item['snoozed_until'] and item['snoozed_until'] > today.isoformat())
+    result = apply_recurrence(db, result, today)
+    result.sort(key=lambda item: (item['snoozed'], item['rank'], item['due_start'] or '9999', item['id']))
+    for item in result:
         item.pop('rank')
     return {'suggestions': result, 'today': today.isoformat(), 'timezone': timezone}

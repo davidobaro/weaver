@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import ForYou from './ForYou'
+import Notifications from './Notifications'
+import WorkspaceSearch from './WorkspaceSearch'
 import EntryReader from './EntryReader'
 import EntryLimit, { ENTRY_CHARACTER_LIMIT, entryLength } from './EntryLimit'
 import Wordmark from './Wordmark'
@@ -162,7 +164,7 @@ export default function App() {
     </aside>
 
     <div className="main-shell">
-      <header className="topbar"><div>Personal workspace{view === 'people' && <><span>/</span><strong>People</strong></>}</div><span className="connection"><i className={data?.inference_configured ? '' : 'offline'} />{data?.inference_configured ? 'Nebius connected' : 'Checking connection'}</span></header>
+      <header className="topbar"><div>Personal workspace{view === 'people' && <><span>/</span><strong>People</strong></>}</div><div className="topbar-actions"><WorkspaceSearch revision={data} onSource={openSource} onPerson={id => { setPersonId(id); setView('people') }} /><Notifications revision={data} onOpen={() => setView('for-you')} /><span className="connection"><i className={data?.inference_configured ? '' : 'offline'} />{data?.inference_configured ? 'Nebius connected' : 'Checking connection'}</span></div></header>
       <main className={view === 'notes' ? 'notes-page' : view === 'for-you' ? 'for-you-page' : undefined}>
         {view === 'for-you' ? <div className="page-heading notes-heading"><div><h1>For you</h1><p className="subtitle">A few things worth a little attention.</p></div></div> : view === 'notes' ? <div className="page-heading notes-heading"><div><h1>A place for your days.</h1><p className="subtitle">A quick thought or a longer story. Make room for both.</p></div></div> : <div className="page-heading"><div><p className="eyebrow">A LITTLE ATTENTION GOES A LONG WAY</p><h1>The people in your world.</h1><p className="subtitle">The things that make them, them. Kept together, with care.</p></div><span className="edition">YOUR PERSONAL MEMORY</span></div>}
 
