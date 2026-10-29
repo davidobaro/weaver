@@ -13,9 +13,7 @@
 .data-details summary { display: flex; align-items: center; gap: 7px; font-size: 10px; cursor: pointer; list-style: none; }
 .data-details summary::-webkit-details-marker { display: none; }
 .data-details[open] summary { color: #4e6642; }
-main.notes-page { max-width: 960px; padding-top: 38px; padding-bottom: 45px; }
-.notes-heading { margin-bottom: 26px; }
-.notes-heading h1 { font-size: 32px; margin-bottom: 9px; }
+main.notes-page { padding-bottom: 48px; }
 .notes-page .notes-layout { display: block; }
 .notes-page .composer { padding: 18px 22px; box-shadow: none; }
 .notes-page .composer > textarea { display: block; margin: 0; min-height: 150px; background: transparent; border: 0; border-radius: 3px; padding: 9px 2px; font-size: 14px; }
@@ -34,14 +32,12 @@ main.notes-page { max-width: 960px; padding-top: 38px; padding-bottom: 45px; }
 .notes-empty { color: #969e8b; font-size: 12px; display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 28px 0; }
 @media (max-width: 680px) {
   .sidebar-nav-spacer { display: none; }
-  main.notes-page { padding-top: 27px; }
-  .notes-heading h1 { font-size: 29px; }
   .notes-page .composer { padding: 14px 16px; }
   .notes-page .composer > textarea { min-height: 145px; font-size: 13px; }
 }
 
 /* For you shares the quiet, single-column rhythm of Notes. */
-main.for-you-page { max-width: 960px; padding-top: 38px; padding-bottom: 50px; }
+main.for-you-page > .for-you-content { max-width: 870px; }
 .feed-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 22px; }
 .feed-filters button { border: 1px solid transparent; background: transparent; border-radius: 5px; padding: 8px 12px; font-size: 11px; color: #929b86; }
 .feed-filters button[aria-pressed=true] { background: #e8edde; border-color: #dfe6d3; color: #526b42; }
@@ -77,7 +73,6 @@ main.for-you-page { max-width: 960px; padding-top: 38px; padding-bottom: 50px; }
 .suggestion-history strong { font-size: 11px; font-weight: 400; color: #80916e; line-height: 1.7; }
 .suggestion-history small { display: block; font-size: 9px; margin-top: 6px; color: #a5ad9a; }
 @media (max-width: 680px) {
-  main.for-you-page { padding-top: 27px; }
   .suggestion-card { padding: 20px 17px; }
   .suggestion-card h2 { font-size: 14px; }
   .suggestion-facts p { font-size: 12px; }
@@ -357,10 +352,6 @@ main.notes-page { max-width: 1440px; }
 .journal-toolbar-actions .quick-note-trigger span { display: inline; }
 @media (max-width: 680px) { .writing-toolbar { flex-wrap: wrap; } .journal-toolbar-actions { gap: 8px; margin-left: auto; } .journal-toolbar-actions .quick-note-trigger { padding: 6px 8px; } }
 
-/* Give the journal editor more breathing room below its heading. */
-main.notes-page { padding-top: 64px; }
-.notes-heading.journal-heading { margin-bottom: 80px; }
-@media (max-width: 680px) { main.notes-page { padding-top: 44px; } .notes-heading.journal-heading { margin-bottom: 60px; } }
 
 /* Small, inline activity cues; the existing reduced-motion rule stops spinning. */
 .organizing-status{display:inline-flex;align-items:center;gap:6px}
@@ -406,3 +397,30 @@ main.notes-page { padding-top: 64px; }
 .digest-type-filter{margin:0 0 18px;color:#8b987c;font-size:10px}
 .digest-type-filter>summary{display:inline-flex;align-items:center;gap:6px;list-style:none;cursor:pointer;padding:5px 0}
 .digest-type-filter .feed-filters{margin-top:10px}
+
+/* Shared workspace rhythm. Compact sidebar/profile controls retain their smaller scale. */
+:root {
+  --page-top: 48px;
+  --page-gutter: 45px;
+  --page-title-size: 32px;
+  --page-heading-gap: 32px;
+  --text-label: 12px;
+  --text-control: 11px;
+}
+main.workspace-page { max-width: 1440px; padding: var(--page-top) var(--page-gutter) 48px; }
+.workspace-page .page-heading { margin: 0 0 var(--page-heading-gap); align-items: flex-start; }
+.workspace-page .page-heading h1 { font: 400 var(--page-title-size)/1.2 var(--serif); letter-spacing: -.8px; color: #354731; margin: 0 0 10px; }
+.workspace-page .page-heading .subtitle { font-size: var(--text-label); line-height: 1.6; max-width: none; }
+.workspace-page .section-title h3,.profile-about .about-heading h3,.profile-obligations > h3 { font: 600 var(--text-label)/1.5 'DM Sans',sans-serif; letter-spacing: 0; }
+.workspace-page .entry-filters button,.for-you-page .feed-filters button { font-size: var(--text-control); padding: 8px 10px; border: 1px solid transparent; border-radius: 5px; }
+.workspace-page .entry-filters button[aria-pressed=true],.for-you-page .feed-filters button[aria-pressed=true] { background: #e8edde; border-color: #dfe6d3; color: #526b42; }
+.workspace-page .entry-search input,.people-toolbar .search input { font-size: var(--text-control); }
+.workspace-page > .people-section > .people-toolbar { margin-bottom: 24px; }
+.journal-suggestions-heading { margin-top: 0; }
+.journal-suggestions-heading h2 { line-height: 1.2; }
+@media (max-width: 1100px) { :root { --page-gutter: 30px; } }
+@media (max-width: 850px) { :root { --page-gutter: 22px; } }
+@media (max-width: 680px) {
+  :root { --page-top: 32px; --page-gutter: 20px; --page-title-size: 29px; --page-heading-gap: 28px; }
+  .topbar > div:first-child { gap: 7px; white-space: nowrap; }
+}

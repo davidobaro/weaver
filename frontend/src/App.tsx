@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import ForYou from './ForYou'
+import PageHeading from './PageHeading'
 import Notifications from './Notifications'
 import WorkspaceSearch from './WorkspaceSearch'
 import QuickNote from './QuickNote'
@@ -152,8 +153,8 @@ export default function App() {
       <a className="brand" href="/" aria-label="Weaver home"><WovenThreads /><Wordmark /></a>
       <div className="sidebar-nav-spacer" />
       <nav aria-label="Main navigation">
-        <button className={view === 'for-you' ? 'nav-item active' : 'nav-item'} onClick={() => { setView('for-you'); setNotice('') }}><Sparkles size={18} /> For you</button>
         <button className={view === 'notes' ? 'nav-item active' : 'nav-item'} onClick={() => { setView('notes'); setNotice('') }}><BookOpen size={18} /> Journal <span>{data?.notes.length || 0}</span></button>
+        <button className={view === 'for-you' ? 'nav-item active' : 'nav-item'} onClick={() => { setView('for-you'); setNotice('') }}><Sparkles size={18} /> For you</button>
         <button className={view === 'people' ? 'nav-item active' : 'nav-item'} onClick={() => { setView('people'); setNotice('') }}><Users size={18} /> People <span>{data?.people.length || 0}</span></button>
       </nav>
       <div className="sidebar-bottom"><details className="data-details"><summary><ShieldCheck size={14} /> About your data</summary><p>Saved on this device. Entries and relevant memories are sent to Nebius to connect the details.</p></details><a href="/api/export" download><Download size={14} /> Export your memories</a></div>
@@ -161,9 +162,9 @@ export default function App() {
     </aside>
 
     <div className="main-shell">
-      <header className="topbar"><div>Personal workspace{view === 'people' && <><span>/</span><strong>People</strong></>}</div><div className="topbar-actions"><WorkspaceSearch revision={data} onSource={openSource} onPerson={id => { setPersonId(id); setView('people') }} /><Notifications revision={data} onOpen={() => setView('for-you')} /><span className="connection"><i className={data?.inference_configured ? '' : 'offline'} />{data?.inference_configured ? 'Nebius connected' : 'Checking connection'}</span></div></header>
-      <main className={view === 'notes' ? 'notes-page' : view === 'for-you' ? 'for-you-page' : undefined}>
-        {view === 'for-you' ? <div className="page-heading notes-heading"><div><h1>For you</h1><p className="subtitle">A few things worth a little attention.</p></div></div> : view === 'notes' ? null : <div className="page-heading"><div><p className="eyebrow">A LITTLE ATTENTION GOES A LONG WAY</p><h1>The people in your world.</h1><p className="subtitle">The things that make them, them. Kept together, with care.</p></div><span className="edition">YOUR PERSONAL MEMORY</span></div>}
+      <header className="topbar"><div>Personal workspace<span>/</span><strong>{view === 'notes' ? 'Journal' : view === 'for-you' ? 'For you' : 'People'}</strong></div><div className="topbar-actions"><WorkspaceSearch revision={data} onSource={openSource} onPerson={id => { setPersonId(id); setView('people') }} /><Notifications revision={data} onOpen={() => setView('for-you')} /><span className="connection"><i className={data?.inference_configured ? '' : 'offline'} />{data?.inference_configured ? 'Nebius connected' : 'Checking connection'}</span></div></header>
+      <main className={`workspace-page ${view === 'notes' ? 'notes-page' : view === 'for-you' ? 'for-you-page' : 'people-page'}`}>
+        {view === 'for-you' ? <PageHeading title="For you" subtitle="A few things worth a little attention." /> : view === 'people' ? <PageHeading title="The people in your world." subtitle="The things that make them, them. Kept together, with care." /> : null}
 
         {error && <div className="alert error" role="alert"><span>{error}</span><button aria-label="Dismiss error" onClick={() => setError('')}><X size={17} /></button></div>}
         {notice && <div className="alert success" role="status"><Check size={18} /><span>{notice}</span><button aria-label="Dismiss notification" onClick={() => setNotice('')}><X size={17} /></button></div>}
@@ -172,7 +173,7 @@ export default function App() {
         {data && view === 'for-you' && <ForYou revision={data} onSource={openSource} onPerson={id => { setPersonId(id); setView('people') }} onAddNote={() => { setView('notes'); setReviewNote(null) }} />}
 
         {data && view === 'notes' && <div className="notes-layout"><section className="notes-main">
-          <div className="page-heading notes-heading journal-heading"><div><h1>A place for your days.</h1><p className="subtitle">A quick thought or a longer story. Make room for both.</p></div></div>
+          <PageHeading title="A place for your days." subtitle="A quick thought or a longer story. Make room for both." />
           {reviewNote ? <section className="card review-card">
             <div className="card-heading"><span className="section-icon"><Sparkles size={19} /></span><div><h2>A few things worth remembering</h2><p>Check each detail. Edit it, skip it, or make it part of your memory.</p></div></div>
             <button className="source-link review-source" onClick={() => setSource(reviewNote)}><FileText size={14} /> Read original note <ArrowUpRight size={13} /></button>
