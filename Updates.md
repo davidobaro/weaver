@@ -2,6 +2,11 @@
 
 Feature history and implementation notes live here; [README.md](README.md) covers the project, setup, and demo access. Earlier notes are grouped by feature because individual release dates were not recorded.
 
+## October 29, 2026 — Readable reminder copy
+
+- Insights, the journal digest, profiles, reminder dialogs, and history now display named context, capitalization, and sentence punctuation instead of raw extracted fragments.
+- Clear direct-object references use the person's name; ambiguous possessives retain their meaning with an explicit person label. Original memories, evidence, reminder IDs, and scheduling remain unchanged.
+
 ## October 29, 2026 — Clearer conversational follow-ups
 
 - Added explicit follow-up coverage hints and validation so a person's future event cannot stand in for the author's intention to check in afterward.
