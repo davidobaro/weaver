@@ -2,6 +2,12 @@
 
 Feature history and implementation notes live here; [README.md](README.md) covers the project, setup, and demo access. Earlier notes are grouped by feature because individual release dates were not recorded.
 
+## October 29, 2026 — Clearer conversational follow-ups
+
+- Added explicit follow-up coverage hints and validation so a person's future event cannot stand in for the author's intention to check in afterward.
+- Added checks for lost subjects in clear same-paragraph references, such as asking about a previously mentioned book. Evidence remains an exact source quote, and unknown titles stay unknown.
+- Added regression coverage for the exported journal example, targeted retries, personal follow-ups, and ambiguous, conditional, negated, completed, and third-party statements.
+
 ## October 29, 2026 — Temporary demo mode
 
 - Added isolated temporary SQLite workspaces with tab-scoped session credentials, expiry, reset, and leased background jobs. Local mode remains the default.
