@@ -436,6 +436,10 @@ main.workspace-page.for-you-page { max-width: none; }
 
 .export-workspace{display:flex;align-items:center;gap:6px;border:0;background:transparent;padding:0;text-align:left;font:inherit;font-size:10px;color:#5f7054}
 .export-workspace:hover{text-decoration:underline}
+.build-version{position:fixed;bottom:9px;left:34px;z-index:3;color:#727d68;font-size:9px;line-height:1.5;font-variant-numeric:tabular-nums;white-space:nowrap}
+.workspace{padding-bottom:32px}
+@media(max-width:950px){.build-version{left:22px;font-size:8px}}
+@media(max-width:680px){.build-version{left:10px;bottom:8px;padding:3px 7px;border:1px solid var(--border);border-radius:4px;background:#f7f6f2ed;pointer-events:none}body{padding-bottom:30px}}
 .demo-notice{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:18px var(--page-gutter) 0;padding:12px 15px;border:1px solid #dfe6d5;border-radius:6px;background:#eef1e7;color:#7a886d;font-size:11px;line-height:1.7}
 .demo-notice p{margin:0;max-width:850px}
 .demo-notice strong{font-weight:600;color:#5d7450}
