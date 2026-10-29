@@ -2,6 +2,15 @@
 
 Feature history and implementation notes live here; [README.md](README.md) covers the project, setup, and demo access. Earlier notes are grouped by feature because individual release dates were not recorded.
 
+## October 29, 2026 — Temporary demo mode
+
+- Added isolated temporary SQLite workspaces with tab-scoped session credentials, expiry, reset, and leased background jobs. Local mode remains the default.
+- Scoped demo drafts, notification receipts, API calls, and exports to the workspace; stale responses cannot update a replacement session.
+- Added bounded organization queues, per-session/network limits, provider-call allowance checks, and request-size limits.
+- Added the temporary demo notice, reset confirmation, and session-ended recovery screen.
+- Added Docker/Render configuration, health checks, a separate local demo start command, and [deployment instructions](docs/live-demo.md). The public URL remains pending deployment verification.
+- Added automated coverage for isolation, reset/expiry, limits, personal-database separation, and browser session lifecycle.
+
 ## October 28, 2026 — Interface and repository cleanup
 
 - Added expandable extraction summaries under organized entries, showing counts, people, facts, tasks, completed actions, and exact source quotes. The initial “What Weaver noticed” label was removed, leaving the counts as the disclosure control.

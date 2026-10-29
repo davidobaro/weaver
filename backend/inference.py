@@ -7,6 +7,7 @@ from datetime import date
 import httpx
 from pydantic import ValidationError
 
+from .demo import before_provider_call
 from .models import Extraction
 from .completions import PAST_ACTIONS, completed_action, is_completed_intention
 from .for_you import date_window
@@ -289,6 +290,7 @@ def _request_chunk(note: str, known_people: list, identity_context: str = '') ->
         payload['chat_template_kwargs'] = {'enable_thinking': True}
     for attempt in range(MAX_ATTEMPTS):
         try:
+            before_provider_call()
             with httpx.Client(timeout=90, follow_redirects=False) as client:
                 response = client.post(base.rstrip('/') + '/chat/completions',
                     headers={'Authorization': f'Bearer {key}'}, json=payload)

@@ -1,3 +1,4 @@
+import { workspaceStorage, draftLocation } from './demoSession'
 import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ArrowRight, LoaderCircle, Plus, X } from 'lucide-react'
@@ -18,8 +19,8 @@ export default function QuickNote({draft, onChange, onSaved}: {draft: QuickNoteD
   const id = useId()
   useEffect(() => {
     try {
-      if (text || title) localStorage.setItem(quickNoteDraftKey, JSON.stringify({text, title}))
-      else localStorage.removeItem(quickNoteDraftKey)
+      if (text || title) workspaceStorage.setItem(quickNoteDraftKey, JSON.stringify({text, title}))
+      else workspaceStorage.removeItem(quickNoteDraftKey)
       setStored(true)
     } catch { setStored(false) }
   }, [text, title])
@@ -57,7 +58,7 @@ export default function QuickNote({draft, onChange, onSaved}: {draft: QuickNoteD
         <textarea id={`${id}-writing`} ref={writing} value={text} aria-describedby={`${id}-limit`} aria-invalid={entryLength(text) > ENTRY_CHARACTER_LIMIT} disabled={saving} placeholder="What would you like to remember?" onChange={event => onChange({...draft, text: event.target.value})} />
         <EntryLimit text={text} id={`${id}-limit`} />
         {error && <p className="timing-error" role="alert">{error}</p>}
-        <div className="quick-note-footer"><span className="draft-indicator" role="status">{text || title ? stored ? 'Draft saved on this device' : 'Draft not backed up — keep this page open' : ''}</span><button className="primary" disabled={saving || !text.trim() || entryLength(text) > ENTRY_CHARACTER_LIMIT}>{saving ? <><LoaderCircle size={15} className="spin" /> Saving…</> : <>Save note <ArrowRight size={15} /></>}</button></div>
+        <div className="quick-note-footer"><span className="draft-indicator" role="status">{text || title ? stored ? draftLocation() : 'Draft not backed up — keep this page open' : ''}</span><button className="primary" disabled={saving || !text.trim() || entryLength(text) > ENTRY_CHARACTER_LIMIT}>{saving ? <><LoaderCircle size={15} className="spin" /> Saving…</> : <>Save note <ArrowRight size={15} /></>}</button></div>
       </form>
     </dialog>, document.body)}
   </>

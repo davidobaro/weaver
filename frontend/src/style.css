@@ -433,3 +433,15 @@ main.workspace-page.for-you-page { max-width: none; }
   :root { --topbar-height: 52px; --page-top: 32px; --page-gutter: 20px; --page-title-size: 29px; --page-heading-gap: 28px; }
   .topbar > div:first-child { gap: 7px; white-space: nowrap; }
 }
+
+.export-workspace{display:flex;align-items:center;gap:6px;border:0;background:transparent;padding:0;text-align:left;font:inherit;font-size:10px;color:#5f7054}
+.export-workspace:hover{text-decoration:underline}
+.demo-notice{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:18px var(--page-gutter) 0;padding:12px 15px;border:1px solid #dfe6d5;border-radius:6px;background:#eef1e7;color:#7a886d;font-size:11px;line-height:1.7}
+.demo-notice p{margin:0;max-width:850px}
+.demo-notice strong{font-weight:600;color:#5d7450}
+.demo-notice button{white-space:nowrap;font-size:11px}
+.demo-session-screen{max-width:650px;padding:64px 24px;margin:auto}
+.demo-session-screen .brand{padding:0;margin-bottom:45px}
+.demo-session-screen h1{font-size:29px}
+.demo-session-screen p{display:flex;align-items:center;gap:9px;color:#7a886d;font-size:13px;line-height:1.8;margin:20px 0}
+@media(max-width:680px){.demo-notice{align-items:flex-start;gap:10px;font-size:10px}.demo-notice button{font-size:10px}.demo-session-screen{padding-top:40px}}

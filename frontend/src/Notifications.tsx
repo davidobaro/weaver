@@ -1,3 +1,4 @@
+import { workspaceStorage } from './demoSession'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Bell, X } from 'lucide-react'
@@ -9,7 +10,7 @@ type Settings = { enabled: boolean; device: string }
 const supported = typeof Notification !== 'undefined' && window.isSecureContext
 function readSettings(): Settings | null {
   try {
-    const value = JSON.parse(localStorage.getItem(storageKey) || 'null')
+    const value = JSON.parse(workspaceStorage.getItem(storageKey) || 'null')
     return value && typeof value.enabled === 'boolean' && typeof value.device === 'string' ? value : null
   } catch { return null }
 }
@@ -48,7 +49,7 @@ export default function Notifications({ revision, onOpen }: { revision: unknown;
       checking = true
       try {
         await deliverReminders({
-          storage: localStorage,
+          storage: workspaceStorage,
           active: () => !cancelled && !!readSettings()?.enabled,
           permitted: () => Notification.permission === 'granted',
           request: api,
@@ -82,7 +83,7 @@ export default function Notifications({ revision, onOpen }: { revision: unknown;
       setPermission(result)
       if (result === 'granted') {
         const next = {device: settings?.device || crypto.randomUUID(), enabled: true}
-        localStorage.setItem(storageKey, JSON.stringify(next)); setSettings(next)
+        workspaceStorage.setItem(storageKey, JSON.stringify(next)); setSettings(next)
       }
     } catch { setError('Could not enable alerts. Allow browser storage and notifications, then try again.') }
     finally { setBusy(false) }
@@ -90,7 +91,7 @@ export default function Notifications({ revision, onOpen }: { revision: unknown;
   const disable = () => {
     try {
       const next = {...settings!, enabled: false}
-      localStorage.setItem(storageKey, JSON.stringify(next)); setSettings(next); setError('')
+      workspaceStorage.setItem(storageKey, JSON.stringify(next)); setSettings(next); setError('')
     } catch { setError('Could not save your preference. Check browser storage settings.') }
   }
   const enabled = !!settings?.enabled && permission === 'granted'

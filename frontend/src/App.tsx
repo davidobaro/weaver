@@ -1,6 +1,8 @@
+import { workspaceStorage, draftLocation, isDemo } from './demoSession'
 import { useEffect, useRef, useState } from 'react'
 import ForYou from './ForYou'
 import PageHeading from './PageHeading'
+import DemoNotice from './DemoNotice'
 import Notifications from './Notifications'
 import WorkspaceSearch from './WorkspaceSearch'
 import QuickNote from './QuickNote'
@@ -14,7 +16,7 @@ import { entryDate as formatEntryDate } from './entries'
 import type { Entry as Note, EntryKind } from './entries'
 import IdentityTools, { IdentityQuestion } from './IdentityTools'
 import type { Alias, Match, Merge } from './IdentityTools'
-import { api, ApiError } from './api'
+import { api, ApiError, exportWorkspace } from './api'
 import { ArrowRight, ArrowUpRight, BookOpen, Check, ChevronLeft, Download, FileText, Flower2, Lightbulb, LoaderCircle, Plus, Search, ShieldCheck, Sparkles, Trash2, Users, X } from 'lucide-react'
 
 type Category = 'birthday' | 'interest' | 'plan' | 'commitment' | 'relationship' | 'context'
@@ -39,7 +41,7 @@ const localToday = () => { const now = new Date(); return `${now.getFullYear()}-
 export default function App() {
   const [data, setData] = useState<State | null>(null)
   const [view, setView] = useState<'notes' | 'people' | 'for-you'>(() => window.location.hash === '#for-you' ? 'for-you' : window.location.hash === '#people' ? 'people' : 'notes')
-  const [initialDrafts] = useState(() => readWritingDrafts(localToday()))
+  const [initialDrafts] = useState(() => readWritingDrafts(localToday(), workspaceStorage))
   const initialDraft = initialDrafts.journal
   const [quickDraft, setQuickDraft] = useState(initialDrafts.quick)
   const [text, setText] = useState(initialDraft.text)
@@ -61,8 +63,8 @@ export default function App() {
 
   useEffect(() => {
     try {
-      if (text || title) { localStorage.setItem(journalDraftKey, JSON.stringify({text, title, entryDate})); setDraftStored(true) }
-      else { localStorage.removeItem(journalDraftKey); setDraftStored(false) }
+      if (text || title) { workspaceStorage.setItem(journalDraftKey, JSON.stringify({text, title, entryDate})); setDraftStored(true) }
+      else { workspaceStorage.removeItem(journalDraftKey); setDraftStored(false) }
     } catch { setDraftStored(false) }
   }, [text, title, entryDate])
 
@@ -157,13 +159,13 @@ export default function App() {
         <button className={view === 'for-you' ? 'nav-item active' : 'nav-item'} onClick={() => { setView('for-you'); setNotice('') }}><Lightbulb size={18} /> Insights</button>
         <button className={view === 'people' ? 'nav-item active' : 'nav-item'} onClick={() => { setView('people'); setNotice('') }}><Users size={18} /> People <span>{data?.people.length || 0}</span></button>
       </nav>
-      <div className="sidebar-bottom"><details className="data-details"><summary><ShieldCheck size={14} /> About your data</summary><p>Saved on this device. Entries and relevant memories are sent to Nebius to connect the details.</p></details><a href="/api/export" download><Download size={14} /> Export your memories</a></div>
-      <div className="workspace"><span className="workspace-avatar">W</span><div>Personal workspace<small>Local · First edition</small></div></div>
+      <div className="sidebar-bottom"><details className="data-details"><summary><ShieldCheck size={14} /> About your data</summary><p>{isDemo() ? 'Temporary server workspace. Entries are cleared after inactivity or a server restart.' : 'Saved on this device.'} Entries and relevant memories are sent to Nebius to connect the details.</p></details><button className="export-workspace" onClick={()=>void exportWorkspace().catch(err=>setError(err.message))}><Download size={14} /> Export your memories</button></div>
+      <div className="workspace"><span className="workspace-avatar">W</span><div>Personal workspace<small>{isDemo() ? 'Temporary demo' : 'Local · First edition'}</small></div></div>
     </aside>
 
     <div className="main-shell">
       <header className="topbar"><div>Personal workspace<span>/</span><strong>{view === 'notes' ? 'Journal' : view === 'for-you' ? 'Insights' : 'People'}</strong></div><div className="topbar-actions"><WorkspaceSearch revision={data} onSource={openSource} onPerson={id => { setPersonId(id); setView('people') }} /><Notifications revision={data} onOpen={() => setView('for-you')} /><span className="connection"><i className={data?.inference_configured ? '' : 'offline'} />{data?.inference_configured ? 'Nebius connected' : 'Checking connection'}</span></div></header>
-      <main className={`workspace-page ${view === 'notes' ? 'notes-page' : view === 'for-you' ? 'for-you-page' : 'people-page'}`}>
+      <DemoNotice/><main className={`workspace-page ${view === 'notes' ? 'notes-page' : view === 'for-you' ? 'for-you-page' : 'people-page'}`}>
         {view === 'for-you' ? <PageHeading title="Insights" subtitle="A few things worth a little attention." /> : view === 'people' ? <PageHeading title="The people in your world." subtitle="The things that make them, them. Kept together, with care." /> : null}
 
         {error && <div className="alert error" role="alert"><span>{error}</span><button aria-label="Dismiss error" onClick={() => setError('')}><X size={17} /></button></div>}
@@ -195,7 +197,7 @@ export default function App() {
             <label className="sr-only" htmlFor="entry-title">Entry title</label><input className="entry-title" id="entry-title" maxLength={180} value={title} disabled={busy} onChange={event => setTitle(event.target.value)} placeholder="Give today a title, if you like…" />
             <label className="sr-only" htmlFor="note-text">Your journal entry</label><textarea id="note-text" aria-describedby="new-entry-limit" aria-invalid={entryLength(text) > ENTRY_CHARACTER_LIMIT} value={text} disabled={busy} onChange={event => setText(event.target.value)} placeholder={'What’s on your mind?\n\nStart anywhere. The small moments count, too.'} />
             <EntryLimit text={text} id="new-entry-limit" />
-            <div className="composer-footer"><span className="draft-indicator" role="status">{text || title ? draftStored ? 'Draft saved on this device' : 'Draft not backed up — keep this page open' : ''}</span><button className="primary" disabled={busy || !text.trim() || entryLength(text) > ENTRY_CHARACTER_LIMIT || !entryDate} onClick={() => extract()}>{busy ? <><LoaderCircle size={16} className="spin" /> Saving…</> : <>Save entry <ArrowRight size={16} /></>}</button></div>
+            <div className="composer-footer"><span className="draft-indicator" role="status">{text || title ? draftStored ? draftLocation() : 'Draft not backed up — keep this page open' : ''}</span><button className="primary" disabled={busy || !text.trim() || entryLength(text) > ENTRY_CHARACTER_LIMIT || !entryDate} onClick={() => extract()}>{busy ? <><LoaderCircle size={16} className="spin" /> Saving…</> : <>Save entry <ArrowRight size={16} /></>}</button></div>
           </section>}
 
 

@@ -1,3 +1,4 @@
+import { workspaceStorage, draftLocation } from './demoSession'
 import { useEffect, useState } from 'react'
 import { Check, History, Pencil, RotateCcw, X } from 'lucide-react'
 import { api } from './api'
@@ -24,13 +25,13 @@ export default function EntryReader({ entry, onClose, onEntry, onSaved }: {
   useEffect(() => { setEditing(false); setForm(fresh()); setError(''); setVersions(null); setOlderDraft(null) }, [entry.id, revision, entry.is_history])
   useEffect(() => {
     if (!editing || olderDraft) return
-    try { localStorage.setItem(key, JSON.stringify(form)); setDraftStored(true) }
+    try { workspaceStorage.setItem(key, JSON.stringify(form)); setDraftStored(true) }
     catch { setDraftStored(false) }
   }, [editing, form, key, olderDraft])
   const begin = () => {
     let draft = fresh()
     try {
-      const stored = JSON.parse(localStorage.getItem(key) || 'null')
+      const stored = JSON.parse(workspaceStorage.getItem(key) || 'null')
       if (stored && typeof stored.text === 'string' && typeof stored.title === 'string' && ['note', 'journal'].includes(stored.kind)) {
         if (stored.expected_revision === revision) draft = stored
         else setOlderDraft(stored)
@@ -43,7 +44,7 @@ export default function EntryReader({ entry, onClose, onEntry, onSaved }: {
     setBusy(true); setError('')
     try {
       const updated = await api<Entry>(`/notes/${entry.id}`, 'PATCH', { ...form, entry_date: form.entry_date || null })
-      try { localStorage.removeItem(key) } catch { /* Saving still works without browser storage. */ }
+      try { workspaceStorage.removeItem(key) } catch { /* Saving still works without browser storage. */ }
       setEditing(false); setVersions(null)
       await onSaved(updated)
     } catch (err) { setError((err as Error).message) }
@@ -76,13 +77,13 @@ export default function EntryReader({ entry, onClose, onEntry, onSaved }: {
     {error && <p className="note-error" role="alert">{error}</p>}
     {entry.is_history && <p className="version-explanation">This is the writing behind an earlier version. Restoring it creates a new version and keeps manually corrected memories.</p>}
     {editing ? <div className="entry-editor">
-      {olderDraft && <details className="recovered-edit"><summary>An older editing draft is saved on this device</summary><p>Review the draft before using it in place of the current entry.</p><blockquote>{olderDraft.text}</blockquote><button className="small-button" onClick={() => { setForm({...olderDraft, expected_revision: revision}); setOlderDraft(null) }}>Use recovered draft</button><button className="text-button" onClick={() => setOlderDraft(null)}>Keep current writing</button></details>}
+      {olderDraft && <details className="recovered-edit"><summary>An older editing draft is available</summary><p>Review the draft before using it in place of the current entry.</p><blockquote>{olderDraft.text}</blockquote><button className="small-button" onClick={() => { setForm({...olderDraft, expected_revision: revision}); setOlderDraft(null) }}>Use recovered draft</button><button className="text-button" onClick={() => setOlderDraft(null)}>Keep current writing</button></details>}
       <label>Title <span>(optional)</span><input aria-label="Edit entry title" maxLength={180} value={form.title} disabled={busy} onChange={event => setForm({...form,title:event.target.value})} /></label>
       <div className="entry-editor-options"><label>Type<select aria-label="Edit entry type" disabled={busy} value={form.kind} onChange={event => setForm({...form,kind:event.target.value as EntryKind})}><option value="note">Quick note</option><option value="journal">Journal entry</option></select></label><label>Entry date <span>(optional)</span><input aria-label="Edit entry date" type="date" disabled={busy} value={form.entry_date} onChange={event => setForm({...form,entry_date:event.target.value})} /></label></div>
       <label>Your writing<textarea aria-label="Edit entry text" aria-describedby="edit-entry-limit" aria-invalid={entryLength(form.text) > ENTRY_CHARACTER_LIMIT} autoFocus value={form.text} disabled={busy} onChange={event => setForm({...form,text:event.target.value})} /></label>
       <EntryLimit text={form.text} id="edit-entry-limit" />
-      <p className="draft-indicator">{olderDraft ? 'Choose which writing to keep before draft recovery continues' : draftStored ? 'Editing draft saved on this device' : 'Keep this page open — draft storage is unavailable'}</p>
-      <div className="entry-reader-actions"><button className="primary" disabled={busy || !form.text.trim() || entryLength(form.text) > ENTRY_CHARACTER_LIMIT} onClick={save}><Check size={14} />{busy ? 'Saving…' : 'Save changes'}</button><button className="text-button" disabled={busy} onClick={() => { try { localStorage.removeItem(key) } catch { /* Optional draft storage. */ } setEditing(false) }}>Cancel edit</button></div>
+      <p className="draft-indicator">{olderDraft ? 'Choose which writing to keep before draft recovery continues' : draftStored ? `Editing ${draftLocation().toLowerCase()}` : 'Keep this page open — draft storage is unavailable'}</p>
+      <div className="entry-reader-actions"><button className="primary" disabled={busy || !form.text.trim() || entryLength(form.text) > ENTRY_CHARACTER_LIMIT} onClick={save}><Check size={14} />{busy ? 'Saving…' : 'Save changes'}</button><button className="text-button" disabled={busy} onClick={() => { try { workspaceStorage.removeItem(key) } catch { /* Optional draft storage. */ } setEditing(false) }}>Cancel edit</button></div>
       {error && <button className="text-button" disabled={busy} onClick={() => showVersion()}>View latest entry</button>}
     </div> : <><p className="source-text">{entry.text}</p><div className="entry-reader-actions">{!entry.is_history ? <button className="text-button" disabled={busy} onClick={begin}><Pencil size={13} /> Edit entry</button> : <><button className="small-button" disabled={busy} onClick={restore}><RotateCcw size={13} /> Restore this version</button><button className="text-button" disabled={busy} onClick={() => showVersion()}>View current entry</button></>}<button className="text-button" disabled={busy} onClick={history}><History size={14} /> Version history</button></div></>}
     {versions && <section className="entry-history" aria-label="Entry version history">{versions.map(version => <button key={version.revision} disabled={busy} onClick={() => showVersion(version.revision)}><span>Version {version.revision}{version.revision === (entry.current_revision || revision) ? ' · Current' : ''}<strong>{version.title || (version.kind === 'journal' ? 'Journal entry' : 'Quick note')}</strong></span><small>{new Date(version.saved_at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</small></button>)}</section>}

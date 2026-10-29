@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import re
@@ -5,7 +6,7 @@ import sqlite3
 import logging
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import asynccontextmanager, contextmanager, nullcontext, suppress
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -16,6 +17,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from uuid import UUID, uuid4
+from .demo import DemoSessions, DemoError, SessionEnded, DemoBodyLimit, current_workspace, current_admission
 from .notifications import claim as claim_notifications
 from .recurrence import act_on_occurrence
 from .auto_recurrence import discover_repeats
@@ -40,20 +42,25 @@ DB_PATH = Path(os.getenv('WEAVER_DB_PATH') or ROOT / 'data' / 'weaver.sqlite3')
 
 
 @contextmanager
-def database():
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH, timeout=10)
-    conn.row_factory = sqlite3.Row
-    conn.execute('PRAGMA foreign_keys = ON')
-    try:
-        with conn:
-            yield conn
-    finally:
-        conn.close()
+def database(workspace=None):
+    workspace = workspace or current_workspace.get()
+    if getattr(app.state, 'demo', None) is not None and workspace is None:
+        raise SessionEnded()
+    path = workspace.path if workspace else DB_PATH
+    with workspace.manager.guard(workspace) if workspace else nullcontext():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(path, timeout=10)
+        conn.row_factory = sqlite3.Row
+        conn.execute('PRAGMA foreign_keys = ON')
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
 
-def initialize():
-    with database() as db:
+def initialize(workspace=None):
+    with database(workspace) as db:
         db.execute('PRAGMA journal_mode = WAL')
         db.execute('PRAGMA synchronous = NORMAL')
         db.executescript('''
@@ -167,30 +174,57 @@ def initialize():
 
 @asynccontextmanager
 async def lifespan(app):
-    initialize()
-    app.state.worker = ThreadPoolExecutor(max_workers=1, thread_name_prefix='weaver-organizer')
-    with database() as db:
-        db.execute("UPDATE notes SET status = 'queued' WHERE automatic = 1 AND status = 'processing'")
-        unfinished = [row['id'] for row in db.execute("SELECT id FROM notes WHERE automatic = 1 AND status = 'queued' ORDER BY id")]
-    for note_id in unfinished:
-        app.state.worker.submit(organize_note, note_id)
+    mode = os.getenv('WEAVER_MODE', 'local')
+    if mode not in {'local', 'demo'}:
+        raise ValueError('WEAVER_MODE must be local or demo')
+    if mode == 'demo' and not os.getenv('NEBIUS_API_KEY', '').strip():
+        raise ValueError('Demo mode requires a server-side NEBIUS_API_KEY')
+    app.state.demo = DemoSessions() if mode == 'demo' else None
+    app.state.worker = ThreadPoolExecutor(max_workers=app.state.demo.workers if app.state.demo else 1, thread_name_prefix='weaver-organizer')
+    async def cleanup():
+        while True:
+            await asyncio.sleep(30)
+            app.state.demo.cleanup()
+    reaper = asyncio.create_task(cleanup()) if app.state.demo else None
+    if not app.state.demo:
+        initialize()
+        with database() as db:
+            db.execute("UPDATE notes SET status = 'queued' WHERE automatic = 1 AND status = 'processing'")
+            unfinished = [row['id'] for row in db.execute("SELECT id FROM notes WHERE automatic = 1 AND status = 'queued' ORDER BY id")]
+        for note_id in unfinished:
+            app.state.worker.submit(organize_note, note_id)
     try:
         yield
     finally:
-        app.state.worker.shutdown(wait=True)
+        if reaper:
+            reaper.cancel()
+            with suppress(asyncio.CancelledError):
+                await reaper
+        if app.state.demo:
+            with app.state.demo.lock:
+                for workspace in list(app.state.demo.sessions.values()):
+                    app.state.demo._revoke(workspace)
+        app.state.worker.shutdown(wait=True, cancel_futures=True)
+        if app.state.demo:
+            app.state.demo.close()
+        app.state.demo = None
 
 
 app = FastAPI(title='Weaver', lifespan=lifespan)
+app.add_middleware(DemoBodyLimit, enabled=lambda: getattr(app.state, 'demo', None) is not None)
 
 
 @app.middleware('http')
 async def local_only(request: Request, call_next):
-    # This first version has no accounts. Bind to loopback and reject browser
-    # writes originating from other websites, including through the dev proxy.
+    # Local mode stays on loopback. Demo mode additionally requires a leased
+    # workspace credential for every data route; origins remain explicit.
     host_raw = request.headers.get('host', '')
     host = host_raw.lstrip('[').split(']')[0].split(':')[0]
     allowed_hosts = {'localhost', '127.0.0.1', '::1', 'testserver'}
     extra_hosts = {h.strip() for h in os.getenv('WEAVER_ALLOWED_HOSTS', '').split(',') if h.strip()}
+    render_host = os.getenv('RENDER_EXTERNAL_HOSTNAME', '') if getattr(app.state, 'demo', None) else ''
+    if render_host:
+        extra_hosts.add(render_host)
     if host not in (allowed_hosts | extra_hosts):
         return JSONResponse({'detail': 'Weaver is a local application.'}, status_code=403)
     if request.method not in {'GET', 'HEAD', 'OPTIONS'}:
@@ -199,9 +233,119 @@ async def local_only(request: Request, call_next):
                            'http://localhost:8000', 'http://127.0.0.1:8000',
                            'http://[::1]:5173', 'http://[::1]:8000'}
         extra_origins = {o.strip() for o in os.getenv('WEAVER_ALLOWED_ORIGINS', '').split(',') if o.strip()}
+        if render_host:
+            extra_origins.add(f'https://{render_host}')
+        if getattr(app.state, 'demo', None):
+            extra_origins.update({'http://127.0.0.1:8001', 'http://localhost:8001'})
         if origin and origin not in (allowed_origins | extra_origins):
             return JSONResponse({'detail': 'This origin is not allowed.'}, status_code=403)
-    return await call_next(request)
+    manager = getattr(app.state, 'demo', None)
+    path = request.url.path
+    try:
+        if not manager or not path.startswith('/api/') or path == '/api/config' or (path == '/api/session' and request.method == 'POST'):
+            response = await call_next(request)
+        else:
+            with manager.lease(request.headers.get('authorization', '')) as workspace:
+                ticket = None
+                marker = None
+                try:
+                    if request.method not in {'GET', 'HEAD', 'OPTIONS'}:
+                        manager.rate('writes', workspace.client, 120, 60)
+                        if not path.startswith('/api/notifications/'):
+                            manager.touch(workspace)
+                    inference_write = (request.method == 'POST' and (path == '/api/notes' or re.fullmatch(r'/api/notes/\d+/(organize|extract|restore)', path))) or (request.method == 'PATCH' and re.fullmatch(r'/api/notes/\d+', path))
+                    if inference_write:
+                        client = manager.client_key(request.client.host if request.client else 'unknown')
+                        ticket = manager.reserve(workspace, client)
+                        marker = current_admission.set(ticket)
+                    response = await call_next(request)
+                finally:
+                    if marker is not None:
+                        current_admission.reset(marker)
+                    if ticket is not None and not ticket.background:
+                        manager.release(ticket)
+        if path.startswith('/api/'):
+            response.headers['Cache-Control'] = 'no-store'
+            response.headers['Vary'] = 'Authorization'
+        return response
+    except DemoError as exc:
+        return JSONResponse({'detail': str(exc)}, status_code=exc.status, headers={'Cache-Control': 'no-store'})
+
+
+@app.exception_handler(DemoError)
+async def demo_error(request: Request, exc: DemoError):
+    return JSONResponse({'detail': str(exc)}, status_code=exc.status)
+
+
+@app.get('/healthz')
+def health():
+    return {'status': 'ok'}
+
+
+@app.get('/api/config')
+def configuration():
+    manager = getattr(app.state, 'demo', None)
+    return {'mode': 'demo' if manager else 'local', 'idle_seconds': manager.idle if manager else None}
+
+
+@app.post('/api/session', status_code=201)
+def create_session(request: Request):
+    manager = getattr(app.state, 'demo', None)
+    if not manager:
+        raise HTTPException(404, 'Temporary sessions are only available in demo mode.')
+    client = manager.client_key(request.client.host if request.client else 'unknown')
+    return manager.create(client, initialize)
+
+
+@app.post('/api/session/activity')
+def session_activity():
+    # Only explicit user interactions call this; periodic GET polling does not.
+    return {'active': True}
+
+
+@app.delete('/api/session', status_code=204)
+def reset_session():
+    workspace = current_workspace.get()
+    if not workspace:
+        raise HTTPException(404, 'Temporary sessions are only available in demo mode.')
+    with workspace.manager.lock:
+        workspace.manager._revoke(workspace)
+
+
+def submit_organization(note_id):
+    workspace = current_workspace.get()
+    if workspace is None:
+        return app.state.worker.submit(organize_note, note_id)
+    manager = workspace.manager
+    ticket = current_admission.get()
+    if ticket is None:
+        raise DemoError('Organization needs a valid demo request.', 409)
+    manager.commit(ticket, background=True)
+    try:
+        future = app.state.worker.submit(run_workspace_job, workspace, note_id)
+        with manager.lock:
+            workspace.futures.add(future)
+        def finished(done):
+            with manager.lock:
+                workspace.futures.discard(done)
+                manager.release(ticket)
+        future.add_done_callback(finished)
+        return future
+    except Exception:
+        manager.release(ticket)
+        raise
+
+
+def run_workspace_job(workspace, note_id):
+    marker = current_workspace.set(workspace)
+    try:
+        with workspace.manager.guard(workspace):
+            pass
+        organize_note(note_id)
+    except SessionEnded:
+        pass
+    finally:
+        current_workspace.reset(marker)
 
 
 def note_or_404(db, note_id):
@@ -261,6 +405,9 @@ def run_extraction(note_id):
         note = note_or_404(db, note_id)
         if note['status'] != 'pending':
             raise HTTPException(409, 'This note has already been reviewed.')
+    ticket = current_admission.get()
+    if ticket:
+        ticket.workspace.manager.commit(ticket)
     try:
         result = extract_memories(entry_text(note))
     except InferenceError as exc:
@@ -347,8 +494,10 @@ def organize_note(note_id):
             publish_completions(db, note, completion_candidates)
             db.execute("UPDATE notes SET status = 'organized', candidates = ?, personal_candidates = ?, completion_candidates = ?, error = NULL WHERE id = ?",
                        (json.dumps(candidates), json.dumps(personal_candidates), json.dumps(completion_candidates), note_id))
+    except SessionEnded:
+        return
     except Exception as exc:
-        message = str(exc) if isinstance(exc, InferenceError) else 'Could not organize this note. It is saved; please retry.'
+        message = str(exc) if isinstance(exc, (InferenceError, DemoError)) else 'Could not organize this note. It is saved; please retry.'
         # Never log note contents, model responses, or credentials.
         logging.getLogger(__name__).warning('Note %s organization failed (%s)', note_id, type(exc).__name__)
         with database() as db:
@@ -358,13 +507,16 @@ def organize_note(note_id):
 @app.post('/api/notes', status_code=201)
 def add_note(body: NoteInput):
     with database() as db:
+        workspace = current_workspace.get()
+        if workspace and db.execute('SELECT COUNT(*) FROM notes').fetchone()[0] >= workspace.manager.max_entries:
+            raise DemoError('This temporary workspace reached its entry limit. Export or reset the demo to continue.')
         note_id = db.execute('INSERT INTO notes(text, automatic, status, kind, title, entry_date) VALUES (?,?,?,?,?,?)',
                             (body.text, int(body.automatic), 'queued' if body.automatic else 'pending',
                              body.kind, body.title, body.entry_date.isoformat() if body.entry_date else None)).lastrowid
         note = note_or_404(db, note_id)
         archive_entry(db, note)
     if body.automatic:
-        app.state.worker.submit(organize_note, note_id)
+        submit_organization(note_id)
         return note
     return run_extraction(note_id)
 
@@ -378,7 +530,7 @@ def queue_organization(note_id: int):
             return note
         db.execute("UPDATE notes SET status = 'queued', automatic = 1, error = NULL, candidates = NULL, personal_candidates = NULL, completion_candidates = NULL WHERE id = ?", (note_id,))
         note = note_or_404(db, note_id)
-    app.state.worker.submit(organize_note, note_id)
+    submit_organization(note_id)
     return note
 
 
@@ -712,7 +864,7 @@ def update_entry(note_id: int, body: EntryEdit):
         db.execute('BEGIN IMMEDIATE')
         note, changed = save_entry_revision(db, note_or_404(db, note_id), content, body.expected_revision)
     if changed:
-        app.state.worker.submit(organize_note, note_id)
+        submit_organization(note_id)
     return note
 
 
@@ -726,7 +878,7 @@ def restore_entry(note_id: int, body: EntryRestore):
             raise HTTPException(404, 'Entry version not found.')
         note, changed = save_entry_revision(db, current, content, body.expected_revision)
     if changed:
-        app.state.worker.submit(organize_note, note_id)
+        submit_organization(note_id)
     return note
 
 

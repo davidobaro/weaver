@@ -1,3 +1,4 @@
+import { workspaceStorage } from './demoSession'
 import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ArrowRight, CalendarDays, Check, ChevronDown, Clock3, Flower2, Link2, LoaderCircle, MessageCircle, Repeat2, RotateCcw, SkipForward, X } from 'lucide-react'
@@ -56,7 +57,7 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
   const load = async () => { const seq = ++request.current; const result = await api<Feed>(query); if (seq === request.current) { setFeed(result); setError('') } }
   const announceChange = () => {
     window.dispatchEvent(new CustomEvent(changeEvent, {detail: instance}))
-    try { localStorage.setItem(changeKey, `${Date.now()}-${instance}`) } catch { /* The refresh timer still works without browser storage. */ }
+    try { workspaceStorage.setItem(changeKey, `${Date.now()}-${instance}`) } catch { /* The refresh timer still works without browser storage. */ }
   }
   useEffect(() => {
     let cancelled = false

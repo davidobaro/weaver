@@ -90,6 +90,10 @@ The development interface is at **http://127.0.0.1:5173** and forwards API reque
 
 More fictional writing is available in [examples/fictional-notes.md](examples/fictional-notes.md). Processing time depends on the entry and provider response. If organization pauses, the original writing remains saved and **Retry** is available.
 
+## Temporary demo mode
+
+Run `sh start-demo.sh` after setup to try isolated temporary workspaces at **http://127.0.0.1:8001**. Your personal database stays separate. Demo sessions expire and can be reset; the hosted URL is still pending. See [demo deployment and limits](docs/live-demo.md) for Render setup.
+
 ## Tests
 
 ```sh
@@ -104,7 +108,7 @@ Automated tests use temporary databases and mocked provider responses; they do n
 
 Local entries and profiles persist in `data/weaver.sqlite3`, which is excluded from Git. Browser drafts are saved separately on the current device. The sidebar provides JSON export; importing exports is not implemented. Submitted writing and relevant profile context are sent to Nebius for inference, so processing is not fully offline.
 
-Extraction can make mistakes; source quotes and editing make them inspectable. Search is keyword-based, connections are tentative topic matches, and completion matching is deliberately conservative. Browser notifications require opt-in and only work while Weaver is open. The app does not send messages, create calendar events, or run an always-on external assistant. Multi-user accounts and isolated hosted demo sessions are not implemented yet.
+Extraction can make mistakes; source quotes and editing make them inspectable. Search is keyword-based, connections are tentative topic matches, and completion matching is deliberately conservative. Browser notifications require opt-in and only work while Weaver is open. The app does not send messages, create calendar events, or run an always-on external assistant. Demo mode provides isolated temporary sessions; multi-user accounts and permanent hosted workspaces are not implemented.
 
 ## Hackathon notes and technology feedback
 
