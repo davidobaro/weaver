@@ -37,7 +37,10 @@ main.notes-page { padding-bottom: 48px; }
 }
 
 /* For you shares the quiet, single-column rhythm of Notes. */
-main.for-you-page > .for-you-content { max-width: 870px; }
+main.for-you-page > .for-you-content { width: 100%; }
+@media (min-width: 1001px) {
+  .for-you-page .suggestion-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+}
 .feed-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 22px; }
 .feed-filters button { border: 1px solid transparent; background: transparent; border-radius: 5px; padding: 8px 12px; font-size: 11px; color: #929b86; }
 .feed-filters button[aria-pressed=true] { background: #e8edde; border-color: #dfe6d3; color: #526b42; }
@@ -409,6 +412,7 @@ main.notes-page { max-width: 1440px; }
   --text-control: 11px;
 }
 main.workspace-page { max-width: 1440px; padding: var(--page-top) var(--page-gutter) 48px; }
+main.workspace-page.for-you-page { max-width: none; }
 .topbar { position: sticky; top: 0; z-index: 5; height: var(--topbar-height); background: #f7f6f2; }
 @media (min-width: 1001px) {
   .journal-suggestions { top: calc(var(--topbar-height) + 24px); max-height: calc(100dvh - var(--topbar-height) - 48px); }
