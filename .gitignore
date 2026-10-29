@@ -35,3 +35,8 @@ private/
 .DS_Store
 .idea/
 .vscode/
+
+# Generated launch videos and local experiment reports
+/brag-output/
+/brag-output-*/
+/reports/
