@@ -400,6 +400,7 @@ main.notes-page { max-width: 1440px; }
 
 /* Shared workspace rhythm. Compact sidebar/profile controls retain their smaller scale. */
 :root {
+  --topbar-height: 76px;
   --page-top: 48px;
   --page-gutter: 45px;
   --page-title-size: 32px;
@@ -408,6 +409,10 @@ main.notes-page { max-width: 1440px; }
   --text-control: 11px;
 }
 main.workspace-page { max-width: 1440px; padding: var(--page-top) var(--page-gutter) 48px; }
+.topbar { position: sticky; top: 0; z-index: 5; height: var(--topbar-height); background: #f7f6f2; }
+@media (min-width: 1001px) {
+  .journal-suggestions { top: calc(var(--topbar-height) + 24px); max-height: calc(100dvh - var(--topbar-height) - 48px); }
+}
 .workspace-page .page-heading { margin: 0 0 var(--page-heading-gap); align-items: flex-start; }
 .workspace-page .page-heading h1 { font: 400 var(--page-title-size)/1.2 var(--serif); letter-spacing: -.8px; color: #354731; margin: 0 0 10px; }
 .workspace-page .page-heading .subtitle { font-size: var(--text-label); line-height: 1.6; max-width: none; }
@@ -421,6 +426,6 @@ main.workspace-page { max-width: 1440px; padding: var(--page-top) var(--page-gut
 @media (max-width: 1100px) { :root { --page-gutter: 30px; } }
 @media (max-width: 850px) { :root { --page-gutter: 22px; } }
 @media (max-width: 680px) {
-  :root { --page-top: 32px; --page-gutter: 20px; --page-title-size: 29px; --page-heading-gap: 28px; }
+  :root { --topbar-height: 52px; --page-top: 32px; --page-gutter: 20px; --page-title-size: 29px; --page-heading-gap: 28px; }
   .topbar > div:first-child { gap: 7px; white-space: nowrap; }
 }
