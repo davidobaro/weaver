@@ -54,7 +54,7 @@ export default function Notifications({ revision, onOpen }: { revision: unknown;
           request: api,
           show: count => {
             const notification = new Notification('A little attention from Weaver', {
-              body: `${count} reminder${count === 1 ? '' : 's'} ready to revisit. Open For you to see the details.`,
+              body: `${count} reminder${count === 1 ? '' : 's'} ready to revisit. Open Insights to see the details.`,
               tag: 'weaver-reminders',
             })
             notification.onclick = () => { window.focus(); openFeed.current(); notification.close() }

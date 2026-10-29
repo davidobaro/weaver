@@ -33,7 +33,7 @@ export default function EntryNoticed({entry,onPerson,onSource}: {entry: Entry; o
           <div className="noticed-item-label">{item.person} · {labels[item.category] || item.category}{!item.active && <span>Updated later</span>}</div>
           <p>{item.value}</p><blockquote>“{item.evidence}”</blockquote>
         </div>)}
-        {!!result.items.length && <p className="noticed-explanation">Extracted from this version. Task status and schedules are managed in For you.</p>}
+        {!!result.items.length && <p className="noticed-explanation">Extracted from this version. Task status and schedules are managed in Insights.</p>}
         <button className="source-link" onClick={onSource}>Read or edit entry <ArrowUpRight size={11}/></button>
       </>}
     </div>
