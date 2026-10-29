@@ -1,4 +1,14 @@
 type DatedSuggestion = {id: string; due_start: string | null; overdue: boolean}
+
+/** The full Insights page exposes every open item; the journal keeps its digest. */
+export function insightSections<T extends DatedSuggestion & {kind: string}>(items: T[]) {
+  return [
+    {key:'dated',label:'Dated',items:items.filter(item=>item.kind!=='connection' && !!item.due_start)
+      .sort((a,b)=>a.due_start!.localeCompare(b.due_start!))},
+    {key:'undated',label:'Undated',items:items.filter(item=>item.kind!=='connection' && !item.due_start)},
+    {key:'connections',label:'Connections',items:items.filter(item=>item.kind==='connection')},
+  ].filter(group=>group.items.length)
+}
 const after = (today: string, days: number) => {
   const day = new Date(`${today}T12:00:00Z`)
   day.setUTCDate(day.getUTCDate() + days)

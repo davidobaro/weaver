@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ArrowRight, CalendarDays, Check, ChevronDown, Clock3, Flower2, Link2, LoaderCircle, MessageCircle, Repeat2, RotateCcw, SkipForward, X } from 'lucide-react'
 import { api } from './api'
-import { suggestionDigest } from './suggestionDigest'
+import { suggestionDigest, insightSections } from './suggestionDigest'
 import { reminderText, sentence } from './reminderText'
 
 type Source = { id: number; person_id: number | null; person: string; note_id: number; note_revision?: number; category: string; value: string; evidence: string; edited: number }
@@ -54,7 +54,7 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
   const [editing, setEditing] = useState<{item: Suggestion; mode: Mode} | null>(null)
   const instance = useId()
   const request = useRef(0)
-  const query = `${endpoint}${personId ? '&include_all_plans=true' : ''}`
+  const query = `${endpoint}&include_all_plans=true`
   const load = async () => { const seq = ++request.current; const result = await api<Feed>(query); if (seq === request.current) { setFeed(result); setError('') } }
   const announceChange = () => {
     window.dispatchEvent(new CustomEvent(changeEvent, {detail: instance}))
@@ -76,7 +76,7 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
   const act = async (item: Suggestion, nextStatus: Suggestion['status'], stopRepeat = false) => {
     setBusy(true); setError('')
     try {
-      await api(`/for-you/${item.id}?timezone=${encodeURIComponent(timezone)}${personId ? '&include_all_plans=true' : ''}`, 'PATCH', { status: nextStatus, ...(stopRepeat ? {stop_repeat: true} : {}) })
+      await api(`/for-you/${item.id}?timezone=${encodeURIComponent(timezone)}&include_all_plans=true`, 'PATCH', { status: nextStatus, ...(stopRepeat ? {stop_repeat: true} : {}) })
       await load()
       announceChange()
       setStatus(stopRepeat ? 'Repeating reminder dismissed. Repeat turned off.' : item.repeat && !item.past_occurrence && nextStatus !== 'open' ? nextStatus === 'done' ? 'Marked done. Next occurrence scheduled.' : 'Occurrence skipped. Next date scheduled.' : nextStatus === 'done' ? 'Marked done.' : nextStatus === 'dismissed' ? 'Suggestion dismissed.' : 'Suggestion restored.')
@@ -148,10 +148,10 @@ export default function ForYou({ revision, onSource, onPerson, onAddNote, compac
       {!fixedScope && <div className="feed-filters feed-scope-filters" role="group" aria-label="Filter by who suggestions involve">{(['all', 'personal', 'others'] as Scope[]).map(value => <button key={value} aria-pressed={scope === value} onClick={() => { setScope(value) }}>{value === 'all' ? 'All' : value === 'personal' ? 'Personal' : 'Others'}</button>)}</div>}
       {!profile && !compact && relevant.some(item => item.status === 'open') && <details className="digest-type-filter"><summary>{filters.find(option=>option.value===filter)?.label}<ChevronDown size={12}/></summary><div className="feed-filters" role="group" aria-label="Filter suggestions">{filters.map(option=><button key={option.value} aria-pressed={filter===option.value} onClick={()=>setFilter(option.value)}>{option.label}</button>)}</div></details>}
       {!shown.length && (snoozed.length ? <p className="profile-tasks-empty">Nothing needs attention in this view right now. Your snoozed reminders are below.</p> : profile ? <p className="profile-tasks-empty">{past.length ? 'All caught up.' : fixedScope === 'personal' ? 'Your tasks, reminders, and goals will gather here as you write.' : 'No tasks or follow-ups recorded yet.'}</p> : <div className="feed-empty"><Flower2 size={36} strokeWidth={1.2} /><h2>{active.length ? 'Nothing in this view just yet.' : past.length ? 'A little room to breathe.' : 'A little attention starts here.'}</h2><p>{active.length ? 'Try another filter to see your other suggestions.' : scope === 'personal' ? 'Your own tasks, plans, reminders, and goals will appear here as you write.' : past.length ? 'You’ve handled the current suggestions. New notes and upcoming dates will bring more.' : 'As your notes grow, promises, upcoming dates, and possible connections will find their way here.'}</p>{!active.length && <button className="text-button" onClick={onAddNote}>Add a note <ArrowRight size={15} /></button>}</div>)}
-      {!profile && !visible.length && shown.length > 0 && <p className="digest-quiet">{compact ? 'Nothing coming up in the next two weeks.' : 'Nothing coming up in the next two weeks. Your later reminders are below.'}</p>}
-      <div className="suggestion-list" tabIndex={profile ? 0 : undefined} aria-label={profile ? 'Scrollable tasks and obligations' : 'Suggested for now'}>{visible.map(renderSuggestion)}</div>
+      {!profile && compact && !visible.length && shown.length > 0 && <p className="digest-quiet">Nothing coming up in the next two weeks.</p>}
+      {(profile || compact) && <div className="suggestion-list" tabIndex={profile ? 0 : undefined} aria-label={profile ? 'Scrollable tasks and obligations' : 'Suggested for now'}>{visible.map(renderSuggestion)}</div>}
       {!profile && compact && digest.remaining > 0 && <button className="source-link digest-view-all" onClick={onOpenAll}>View {digest.remaining} more {digest.remaining === 1 ? 'suggestion' : 'suggestions'} <ArrowRight size={12}/></button>}
-      {!profile && !compact && digest.groups.map(group=><details key={group.key} className={`digest-group digest-group-${group.key}`}><summary>{group.label}<span>{group.items.length}</span><ChevronDown size={13}/></summary><div className="suggestion-list">{group.items.map(renderSuggestion)}</div></details>)}
+      {!profile && !compact && insightSections(shown).map(group=><section key={group.key} className="insight-section" aria-label={group.label}><h2 className="insight-section-label">{group.label} <span>{group.items.length}</span></h2><div className="suggestion-list">{group.items.map(renderSuggestion)}</div></section>)}
       {snoozed.length > 0 && <details className="suggestion-history snoozed-history"><summary>Snoozed <span>{snoozed.length}</span></summary>{snoozed.map(item => <div key={item.id}><div><strong>{reminderText(item)}</strong><small>Until {dateLabel({...item, due_start: item.snoozed_until, due_end: item.snoozed_until}, feed.today)}</small><button className="source-link" onClick={() => onSource(item.sources[0].note_id, item.sources[0].note_revision)}>Source <ArrowRight size={10} /></button></div><div className="snoozed-actions"><button className="text-button" disabled={busy} onClick={() => bringBack(item)}><RotateCcw size={12} /> Bring back</button>{timingControls(item)}</div></div>)}</details>}
       {past.length > 0 && <details className="suggestion-history"><summary>Done & dismissed <span>{past.length}</span></summary>{past.map(item => <div key={item.id}><div><strong>{reminderText(item)}</strong><small>{item.past_occurrence && <>{dateLabel(item, feed.today)} · </>}{item.status === 'done' ? item.completion ? 'Done from your writing' : 'Done' : 'Dismissed'}</small>{item.completion && <button className="source-link completion-source" title={item.completion.evidence} onClick={() => onSource(item.completion!.note_id, item.completion!.note_revision)}>Completion source <ArrowRight size={10} /></button>}</div><button className="text-button" disabled={busy} onClick={() => act(item, 'open')}><RotateCcw size={12} /> Restore</button></div>)}</details>}
     </>}

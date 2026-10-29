@@ -23,7 +23,9 @@ MONTHLY = [re.compile(pattern, re.I) for pattern in (
 )]
 DAILY = re.compile(r'\b(?:every day|each day|daily|everyday)\b(?=\s*(?:$|[.!?,;]|starting\b|beginning\b|from\b|at\b))', re.I)
 UNSAFE = re.compile(r"\b(?:not|never|no longer|no need|maybe|perhaps|possibly|probably|might|could|would|if|unless|unsure|uncertain|used to|stopped|quit|cancelled|canceled|until|through|between|except|only|other|alternat\w*|twice|biweekly|bimonthly|yearly|annually|weekdays|weekends|or|either)\b|\b(?:don|doesn|didn|won|can|shouldn|wouldn)['’]t\b|\bfor\s+(?:the\s+)?(?:(?:next|coming|following)\s+)?(?:(?:\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten|few|this)\s+)?(?:days?|weeks?|months?|years?)\b|\b(?:at|by)\s+\d|\b\d(?::\d\d)?\s*(?:am|pm)\b|\b(?:noon|midnight)\b", re.I)
-INTENTION = re.compile(r"^(?:i\s+(?:need to|have to|must|will|should|want to|plan to|intend to|am going to|promised(?: to)?)\b|remind me\b|remember to\b|need to\b|(?:water|pay|check|call|send|clean|exercise|run|stretch|walk|practice|study|read|write|take|refill|review|update|back up|feed|visit|meet|attend|book|charge|replace|wash|do|meditate|schedule|renew|submit|buy|pick up|bring)\b)", re.I)
+# Discourse adverbs do not change who owns an explicit intention. Keep this
+# allowance after "I"; uncertainty/negation still fails UNSAFE on the full source.
+INTENTION = re.compile(r"^(?:i\s+(?:(?:also|still)\s+)*(?:need to|have to|must|will|should|want to|plan to|intend to|am going to|promised(?: to)?)\b|remind me\b|remember to\b|need to\b|(?:water|pay|check|call|send|clean|exercise|run|stretch|walk|practice|study|read|write|take|refill|review|update|back up|feed|visit|meet|attend|book|charge|replace|wash|do|meditate|schedule|renew|submit|buy|pick up|bring)\b)", re.I)
 
 
 def source_context(text, evidence):

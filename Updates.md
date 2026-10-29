@@ -2,6 +2,16 @@
 
 Feature history and implementation notes live here; [README.md](README.md) covers the project, setup, and demo access. Earlier notes are grouped by feature because individual release dates were not recorded.
 
+## October 29, 2026 — Undated obligations in Insights
+
+- Insights now requests the complete plan feed and displays dated reminders first, followed by an open Undated section and a separate Connections section.
+- The journal sidebar retains its three-item digest, with its remaining count including undated follow-ups. Actions use the same complete feed so newly visible reminders can be completed or dismissed.
+
+## October 29, 2026 — Repeat detection in natural phrasing
+
+- Automatic repeat detection now accepts author intentions with “also” and “still,” including the exported Sunday-reading goal.
+- Added an Insights API regression check with the original shortened evidence, plus daily/weekly/monthly and negative coverage. Uncertain, negated, third-party, and bounded schedules remain excluded.
+
 ## October 29, 2026 — Readable reminder copy
 
 - Insights, the journal digest, profiles, reminder dialogs, and history now display named context, capitalization, and sentence punctuation instead of raw extracted fragments.

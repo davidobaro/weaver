@@ -18,6 +18,9 @@ ANCHOR = date(2026, 10, 27)  # Tuesday
     ('Every Tuesday, water the plants.', 'weekly', '2026-10-27'),
     ('I should stretch daily.', 'daily', '2026-10-27'),
     ('I want to meditate every day.', 'daily', '2026-10-27'),
+    ('I also want to spend twenty minutes reading every Sunday.', 'weekly', '2026-11-01'),
+    ('I still need to water the plants every Saturday.', 'weekly', '2026-10-31'),
+    ('I also still need to pay rent on the first of each month.', 'monthly', '2026-11-01'),
     ('Read each day.', 'daily', '2026-10-27'),
     ('I need to pay rent on the first of each month.', 'monthly', '2026-11-01'),
     ('Pay rent every month on the 1st.', 'monthly', '2026-11-01'),
@@ -46,6 +49,10 @@ def test_clear_source_phrases_create_calendar_schedules(text, frequency, due):
     'I stopped watering the plants every Saturday.',
     'Mira waters the plants every Saturday.',
     'Mira wants to water the plants every Saturday.',
+    'Mira also wants to water the plants every Saturday.',
+    'I also might water the plants every Saturday.',
+    'I also do not want to water the plants every Saturday.',
+    'I also want to water the plants every Saturday until November 30.',
     'Should I water the plants every Saturday?',
     'I need to water the plants every other Saturday.',
     'I want to run twice a week.',
@@ -137,6 +144,20 @@ def test_monthly_and_daily_entries_work_without_manual_timing_setup(client):
     assert monthly['repeat'] == 'monthly' and monthly['due_start'] == '2026-11-01'
     add(client, 'Stretch daily.')
     assert {item['repeat'] for item in feed(client)} == {'daily', 'monthly'}
+
+
+def test_exported_reading_goal_with_also_and_short_quote_appears_as_weekly_in_insights(client, monkeypatch):
+    text = ('For myself, I need to pay the electricity bill tomorrow and book a dentist appointment sometime next week. '
+            'I also want to spend twenty minutes reading every Sunday.')
+    evidence = 'want to spend twenty minutes reading every Sunday'
+    monkeypatch.setattr(main, 'extract_memories', lambda *args: Extraction(memories=[], personal=[
+        PersonalCandidate(category='goal', value='spend twenty minutes reading every Sunday', evidence=evidence)]))
+    add(client, text)
+    item, = feed(client)
+    assert item['repeat'] == 'weekly'
+    assert item['repeat_origin'] == 'writing'
+    assert item['due_start'] == '2026-11-01'
+    assert item['sources'][0]['evidence'] == evidence
 
 
 def test_author_intention_involving_named_person_repeats_but_other_person_habit_does_not(client):

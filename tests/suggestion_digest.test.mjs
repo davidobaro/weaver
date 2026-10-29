@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import ts from '../frontend/node_modules/typescript/lib/typescript.js'
 const source=readFileSync(new URL('../frontend/src/suggestionDigest.ts',import.meta.url),'utf8')
 const {outputText}=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}})
-const {suggestionDigest}=await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
+const {suggestionDigest,insightSections}=await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
 const day='2026-10-28'
 const item=(id,due_start=null,overdue=false)=>({id,due_start,overdue})
 
@@ -49,4 +49,23 @@ test('cutoffs use calendar days across month and daylight-saving boundaries',()=
 test('an empty or filtered feed does not retain old highlights',()=>{
  assert.deepEqual(suggestionDigest([],day),{highlights:[],groups:[],remaining:0})
  assert.deepEqual(suggestionDigest([item('others-only')],day).highlights.map(x=>x.id),['others-only'])
+})
+
+test('full Insights lists every dated obligation before undated ones, with connections separate',()=>{
+ const items=[
+  {...item('ask-stewy'),kind:'follow_up'},
+  {...item('later','2027-04-01'),kind:'date'},
+  {...item('today',day),kind:'date'},
+  {...item('maya'),kind:'follow_up'},
+  {...item('connection'),kind:'connection'},
+ ]
+ const before=JSON.stringify(items)
+ const groups=insightSections(items)
+ assert.deepEqual(groups.map(g=>[g.label,g.items.map(x=>x.id)]),[
+  ['Dated',['today','later']],['Undated',['ask-stewy','maya']],['Connections',['connection']],
+ ])
+ assert.equal(groups.flatMap(g=>g.items).length,items.length)
+ assert.equal(JSON.stringify(items),before)
+ assert.deepEqual(insightSections([]),[])
+ assert.deepEqual(insightSections([items[0]]).map(g=>g.label),['Undated'])
 })
