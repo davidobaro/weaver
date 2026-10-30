@@ -16,7 +16,7 @@ PAST_ACTIONS = {
     'canceled': 'cancel', 'repaired': 'repair', 'fixed': 'fix', 'updated': 'update',
 }
 STOP = set('i me my a an the to of for in at by into need should must want remember remind please finally already just have had has today tomorrow yesterday this that on'.split())
-STOP.update('monday tuesday wednesday thursday friday saturday sunday january february march april may june july august september october november december next week month'.split())
+STOP.update('monday tuesday wednesday thursday friday saturday sunday january february march april may june july august september october november december next week month sometime'.split())
 UNFINISHED = re.compile(r"\b(?:not|never|still|yet|maybe|perhaps|possibly|probably|might|think|guess|unsure|apparently|supposedly|will|would|could|should|need|want|hope|plan|if|unless|before|once)\b|\b(?:haven|hasn|hadn|didn|isn|wasn)['’]t\b", re.I)
 RECURRING = re.compile(r'\b(?:every|daily|weekly|monthly|yearly|twice|habit)\b|\ba (?:day|week|month|year)\b', re.I)
 ACTOR = re.compile(r"^(?:(?:today|yesterday|this morning|this evening|finally|already|just)[,\s]+)*(?:i\s+(?:(?:have|had|finally|already|just|also|successfully)\s+)*|i['’]ve\s+(?:(?:finally|already|just|also|successfully)\s+)*)?(" + '|'.join(PAST_ACTIONS) + r')\b', re.I)

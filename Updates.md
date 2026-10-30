@@ -2,6 +2,11 @@
 
 Feature history and implementation notes live here; [README.md](README.md) covers the project, setup, and demo access. Earlier notes are grouped by feature because individual release dates were not recorded.
 
+## October 29, 2026 — Completion matching with loose timing
+
+- Fixed personal completion matching when the saved task includes “sometime,” such as booking a dentist appointment sometime next week. Timing qualifiers no longer prevent an otherwise exact action/object match.
+- Added an API regression using the exported dentist task and completion sentence, verifying Insights moves the task to done with its completion source. Recurring tasks and person-related promises still require manual completion.
+
 ## October 29, 2026 — Undated obligations in Insights
 
 - Insights now requests the complete plan feed and displays dated reminders first, followed by an open Undated section and a separate Connections section.

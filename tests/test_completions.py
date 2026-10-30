@@ -58,6 +58,25 @@ def test_clear_completion_moves_task_to_done_with_its_source(client):
     assert len(client.get('/api/export').json()['personal_completions']) == 1
 
 
+def test_exported_dentist_completion_matches_task_with_loose_timing(client, monkeypatch):
+    task_text = 'I should book a dentist appointment sometime next week.'
+    done_text = 'I got a few things off my list today. I booked my dentist appointment for next Thursday and watered the plants this afternoon.'
+    evidence = 'booked my dentist appointment for next Thursday'
+    def dentist(text, known=None):
+        fields = {'personal': [{'category': 'plan', 'value': 'book a dentist appointment sometime next week',
+                               'evidence': task_text}]} if text == task_text else {
+            'completed_personal': [{'value': 'Book dentist appointment', 'evidence': evidence}]}
+        return parse_extraction(json.dumps({'memories': [], **fields}), text)
+    monkeypatch.setattr(main, 'extract_memories', dentist)
+    add(client, task_text, kind='journal', entry_date='2026-10-29')
+    done = add(client, done_text, kind='journal', entry_date='2026-10-29')
+    item, = feed(client)
+    assert item['status'] == 'done'
+    assert item['completion']['note_id'] == done['id']
+    assert item['completion']['evidence'] == evidence
+    assert len(client.get('/api/export').json()['personal_completions']) == 1
+
+
 @pytest.mark.parametrize('text', [
     "I haven't renewed my passport.", 'I have not renewed my passport.',
     'I will have renewed my passport tomorrow.', 'I might have renewed my passport.',
