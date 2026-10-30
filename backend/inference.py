@@ -8,7 +8,8 @@ import httpx
 from pydantic import ValidationError
 
 from .demo import before_provider_call
-from .models import Extraction
+from .models import Extraction, Candidate
+from .suggestion_quality import person_action
 from .completions import PAST_ACTIONS, completed_action, is_completed_intention
 from .for_you import date_window
 from .profile_grounding import fact_hints, missing_facts, paragraph_at
@@ -166,6 +167,24 @@ def validate_meaning(result: Extraction, note: str, identity_context: str = '') 
                 'and uncertainty in the value as well as the exact evidence quote.')
 
 
+def route_named_tasks(result, note, known_people=()):
+    """An explicit named recipient belongs to People, never the author's personal list."""
+    names = {item.person for item in result.memories} | {person['name'] for person in known_people}
+    personal = []
+    for item in result.personal:
+        recipients = [name for name in names if source_name(name, note)
+                      and person_action(item.value, name, require_name=True)]
+        if len(recipients) != 1:
+            personal.append(item)
+            continue
+        name = recipients[0]
+        action = person_action(item.value, name, require_name=True)
+        if not any(memory.person.casefold() == name.casefold() and memory.category in {'plan', 'commitment'}
+                   and person_action(memory.value, name) == action for memory in result.memories):
+            result.memories.append(Candidate(person=name, category='plan', value=item.value, evidence=item.evidence))
+    result.personal = personal
+
+
 def normalize_duplicates(result: Extraction, people: list) -> Extraction:
     key = lambda text: ' '.join(re.findall(r'\w+', text.casefold()))
     for item in result.memories:
@@ -252,6 +271,7 @@ def parse_extraction(content: str, note: str, identity_context: str = '') -> Ext
         if (lost_date or lost_repeat) and preserves_action and len(quoted) <= 1000 and not re.search(r'[.!?;\n]|\b(?:and|but|or)\b', quoted, re.I):
             item.value = quoted
     normalize_categories(result)
+    route_named_tasks(result, note)
     result.personal = [item for item in result.personal if not is_completed_intention(note, item, result.completed_personal)]
     return result
 
@@ -321,6 +341,7 @@ def _request_chunk(note: str, known_people: list, identity_context: str = '') ->
                 raise ResponseLimitError('Organization could not finish a section. Your writing is saved; please retry.')
             try:
                 result = parse_extraction(choice['message']['content'], note, identity_context)
+                route_named_tasks(result, note, known_people)
                 validate_meaning(result, note, identity_context)
                 # Match publication behavior: unsupported completed activities
                 # cannot close tasks. Check actor errors before this filtering

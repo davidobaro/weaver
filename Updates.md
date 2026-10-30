@@ -2,6 +2,12 @@
 
 Feature history and implementation notes live here; [README.md](README.md) covers the project, setup, and demo access. Earlier notes are grouped by feature because individual release dates were not recorded.
 
+## October 29, 2026 — Named tasks belong under Others
+
+- Explicit tasks addressed to an established person are routed out of Personal during extraction; duplicate Personal/People representations of the same action are not published twice.
+- Existing matching cross-scope reminders display as one Others card, retaining both source links and action IDs. Completing or dismissing that card updates the grouped copies.
+- Grouping preserves distinctions between recipients, third-party promises, dates, statuses, and recurrence settings.
+
 ## October 29, 2026 — Completion matching with loose timing
 
 - Fixed personal completion matching when the saved task includes “sometime,” such as booking a dentist appointment sometime next week. Timing qualifiers no longer prevent an otherwise exact action/object match.

@@ -120,6 +120,31 @@ def test_delete_cascades_and_export_includes_personal_history(client):
     assert client.get('/api/export').json()['personal_reminders'] == []
 
 
+def test_named_task_cannot_be_saved_in_both_personal_and_person_memories():
+    text = 'I need to send Maya the beginner ceramics class by Friday. I should book a dentist appointment.'
+    result = parse_extraction(json.dumps({'memories': [
+        {'person':'Maya','category':'commitment','value':'Send her that beginner ceramics class by Friday',
+         'evidence':'I need to send Maya the beginner ceramics class by Friday.'}],
+        'personal': [
+            {'category':'task','value':'Send Maya the beginner ceramics class by Friday',
+             'evidence':'I need to send Maya the beginner ceramics class by Friday.'},
+            {'category':'task','value':'Book a dentist appointment','evidence':'I should book a dentist appointment.'}
+        ]}), text)
+    assert len(result.memories) == 1
+    assert [item.value for item in result.personal] == ['Book a dentist appointment']
+
+
+def test_known_named_recipient_routes_to_people_without_losing_the_task():
+    from backend.inference import route_named_tasks
+    text = 'Send Maya the guide. Renew my passport.'
+    result = parse_extraction(json.dumps({'memories': [], 'personal': [
+        {'category':'task','value':'Send Maya the guide','evidence':'Send Maya the guide.'},
+        {'category':'task','value':'Renew my passport','evidence':'Renew my passport.'}]}), text)
+    route_named_tasks(result, text, [{'name':'Maya'}])
+    assert [(item.person,item.value) for item in result.memories] == [('Maya','Send Maya the guide')]
+    assert [item.value for item in result.personal] == ['Renew my passport']
+
+
 def test_personal_quotes_are_validated_without_requiring_a_person_name():
     result = parse_extraction('{"memories":[],"personal":[{"category":"task","value":"Get water","evidence":"get water"}]}', 'get water')
     assert len(result.personal) == 1

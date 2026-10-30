@@ -185,6 +185,33 @@ def test_equivalent_cards_preserve_all_sources_and_actions_update_the_whole_grou
     assert client.get('/api/search',params={'q':'passport','kind':'task'}).json()['total']==1
 
 
+def test_named_recipient_duplicate_is_one_others_card_and_actions_cover_both(client):
+    seed('Send Maya the beginner ceramics class by Friday')
+    seed('Send her that beginner ceramics class by Friday', 'commitment', 'Maya')
+    item, = feed(client)
+    assert item['scope'] == 'others'
+    assert item['sources'][0]['person'] == 'Maya'
+    assert len(item['sources']) == len(item['related_ids']) == 2
+    assert client.patch(f"/api/for-you/{item['id']}?include_all_plans=true", json={'status':'done'}).status_code == 200
+    done, = feed(client)
+    assert done['status'] == 'done' and len(done['related_ids']) == 2
+
+
+def test_cross_scope_dedup_requires_same_named_recipient_action_and_timing(client):
+    seed('Send Maya the guide tomorrow')
+    seed('Send Noor the guide tomorrow', 'commitment', 'Noor')
+    seed('Send Maya the guide by Friday', 'commitment', 'Maya')
+    seed('Maya promised to send me the guide tomorrow', 'commitment', 'Maya')
+    assert len(feed(client)) == 4
+
+
+def test_person_rephrasing_and_pronoun_duplicates_keep_one_scoped_card(client):
+    seed('Send Maya the guide by Friday', 'plan', 'Maya')
+    seed('Send her that guide by Friday', 'commitment', 'Maya')
+    item, = feed(client)
+    assert item['scope'] == 'others' and len(item['sources']) == 2
+
+
 def test_grouped_due_dates_snooze_repeat_stop_and_history_stay_synchronized(client):
     seed('Water the plants')
     seed('I need to water the plants','reminder')
