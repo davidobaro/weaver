@@ -118,13 +118,13 @@ def test_other_persons_completion_requires_a_corrected_answer():
         inference.validate_meaning(result, text)
 
 
-@pytest.mark.parametrize('text,value', [
-    ('I mailed the letter.', 'Mail the letter'),
-    ('I renewed my passport and paid the bill.', 'Pay the bill'),
-    ('I have just renewed my passport.', 'Renew my passport'),
+@pytest.mark.parametrize('text,values', [
+    ('I mailed the letter.', ['Mail the letter']),
+    ('I renewed my passport and paid the bill.', ['Renew my passport', 'Pay the bill']),
+    ('I have just renewed my passport.', ['Renew my passport']),
 ])
-def test_role_guard_does_not_reject_author_actions_outside_completion_matcher(text, value):
-    result = parsed(text, completed_personal=[{'value': value, 'evidence': text}])
+def test_role_guard_accepts_author_actions_with_complete_coverage(text, values):
+    result = parsed(text, completed_personal=[{'value': value, 'evidence': text} for value in values])
     inference.validate_meaning(result, text)
 
 

@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from .demo import before_provider_call
 from .models import Extraction, Candidate
 from .suggestion_quality import person_action
-from .completions import PAST_ACTIONS, completed_action, is_completed_intention
+from .completions import PAST_ACTIONS, completed_action, is_completed_intention, completion_hints, missing_completions
 from .for_you import date_window
 from .profile_grounding import fact_hints, missing_facts, paragraph_at
 from .followup_grounding import followup_hints, followup_failure
@@ -26,7 +26,7 @@ No other fields. IDs are positive integers on individual memories only.
 WHO FIRST:
 - memories concern a NAMED OTHER PERSON, including errands/promises involving them. Categories: birthday (explicit date), interest (lasting preferences/hobbies/learning a hobby), plan (future activity/wish), commitment (promise/obligation; preserve who promised what), relationship (explicit relationship only), context (completed updates/background/work/ongoing education).
 - personal contains only the AUTHOR's actionable intentions without named others: task (chores), reminder (loose intent), plan (definite activity), goal (concrete aspiration/habit, including running twice a week). An unnamed chore stays personal even when a nearby sentence mentions someone. Moods/reflections/wanting breathing room, negations, hypotheticals and completed actions are not personal intentions. Locations/businesses and bare names are not people/facts.
-- completed_personal contains explicit DEFINITELY COMPLETED AUTHOR actions, expressed as imperative value plus their exact source quote. "I paid the electricity bill" -> "Pay the electricity bill". "Maya renewed her passport" is Maya/context, never author completion. Do not omit a completed author action just because another sentence has an unfinished task. No uncertain, negated, future or third-party completions; vague "all done" cannot close anything. Don't also extract the completed action as a new task.
+- completed_personal contains explicit DEFINITELY COMPLETED AUTHOR actions, expressed as imperative value plus their exact source quote. "I paid the electricity bill" -> "Pay the electricity bill". "I booked my dentist appointment and watered the plants" -> TWO completions: "Book dentist appointment" / "booked my dentist appointment", and "Water the plants" / "watered the plants". Scan every coordinated action, not just the first verb. "Maya renewed her passport" is Maya/context, never author completion. Do not omit a completed author action just because another clause or sentence has an unfinished task. No uncertain, negated, future or third-party completions; vague "all done" cannot close anything. Don't also extract the completed action as a new task.
 Examples: "rory moved in" -> rory/context/Moved in; "Lina is studying law" -> Lina/context; "Lina is learning guitar" -> Lina/interest; "need peppers from ellis" -> ellis/plan, not personal.
 
 FOLLOW-UPS:
@@ -127,6 +127,8 @@ def validate_meaning(result: Extraction, note: str, identity_context: str = '') 
             + fact['quote'] + '. Include a separate ' + fact['category'] + ' memory for '
             + fact['person'] + ' with the source topic and an exact new_note quote.')
     for item in result.completed_personal:
+        if completed_action(note, item.model_dump()):
+            continue
         start = note.find(item.evidence)
         boundary = max(note.rfind(mark, 0, start) for mark in ('.', '!', '?', '\n'))
         sentence = note[boundary + 1:].strip()
@@ -165,6 +167,11 @@ def validate_meaning(result: Extraction, note: str, identity_context: str = '') 
         if date_window(clause, anchor, anchor) and not date_window(item.value, anchor, anchor):
             raise ExtractionValidationError('A personal item lost its stated deadline. Keep the source timing '
                 'and uncertainty in the value as well as the exact evidence quote.')
+    omitted = missing_completions(result, note)
+    if omitted:
+        raise ExtractionValidationError('A definite completed author action was omitted: ' + omitted[0]['quote'] +
+            '. Include its own completed_personal item with a concise imperative value and exact action quote. '
+            'An unfinished neighboring clause must not hide this completion.')
 
 
 def route_named_tasks(result, note, known_people=()):
@@ -308,6 +315,7 @@ def _request_chunk(note: str, known_people: list, identity_context: str = '') ->
         {'role': 'system', 'content': PROMPT},
         {'role': 'user', 'content': json.dumps({'known_people': known_people, 'subject_hints': subject_hints(note),
             'profile_fact_hints': fact_hints(note), 'followup_hints': followup_hints(note, identity_context),
+            'completion_hints': completion_hints(note),
             'identity_context': identity_context, 'new_note': note})}],
         'temperature': 0, 'max_tokens': 8192,
         'response_format': {'type': 'json_object'}}
@@ -363,6 +371,7 @@ def _request_chunk(note: str, known_people: list, identity_context: str = '') ->
                     'known_people': [{k: v for k, v in person.items() if k != 'memories'} for person in known_people],
                     'subject_hints': subject_hints(note), 'profile_fact_hints': fact_hints(note),
                     'followup_hints': followup_hints(note, identity_context),
+                    'completion_hints': completion_hints(note),
                     'identity_context': identity_context, 'new_note': note})
         except (httpx.TimeoutException, httpx.NetworkError) as exc:
             if attempt + 1 == MAX_ATTEMPTS:

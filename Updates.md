@@ -2,6 +2,12 @@
 
 Feature history and implementation notes live here; [README.md](README.md) covers the project, setup, and demo access. Earlier notes are grouped by feature because individual release dates were not recorded.
 
+## October 29, 2026 — Long-entry completion regressions
+
+- Added clause-level actor and certainty checks for coordinated completed actions. A second completed action is no longer checked against only the sentence's first verb, and another person's action cannot inherit the author's identity.
+- Added watering, refilling, and charging verbs, explicit compound-completion prompting, and source coverage hints with targeted retries for omitted concrete author actions.
+- Added long-entry parsing and API regressions for task status, completion-source history, deletion/undo, mixed finished and unfinished clauses, uncertainty, negation, and actor changes. One-off personal task completion remains distinct from recurring schedules and person-related promises.
+
 ## October 29, 2026 — Named tasks belong under Others
 
 - Explicit tasks addressed to an established person are routed out of Personal during extraction; duplicate Personal/People representations of the same action are not published twice.

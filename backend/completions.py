@@ -14,12 +14,60 @@ PAST_ACTIONS = {
     'returned': 'return', 'washed': 'wash', 'cleaned': 'clean', 'filed': 'file',
     'registered': 'register', 'scheduled': 'schedule', 'cancelled': 'cancel',
     'canceled': 'cancel', 'repaired': 'repair', 'fixed': 'fix', 'updated': 'update',
+    'watered': 'water', 'refilled': 'refill', 'charged': 'charge',
 }
 STOP = set('i me my a an the to of for in at by into need should must want remember remind please finally already just have had has today tomorrow yesterday this that on'.split())
 STOP.update('monday tuesday wednesday thursday friday saturday sunday january february march april may june july august september october november december next week month sometime'.split())
 UNFINISHED = re.compile(r"\b(?:not|never|still|yet|maybe|perhaps|possibly|probably|might|think|guess|unsure|apparently|supposedly|will|would|could|should|need|want|hope|plan|if|unless|before|once)\b|\b(?:haven|hasn|hadn|didn|isn|wasn)['’]t\b", re.I)
 RECURRING = re.compile(r'\b(?:every|daily|weekly|monthly|yearly|twice|habit)\b|\ba (?:day|week|month|year)\b', re.I)
 ACTOR = re.compile(r"^(?:(?:today|yesterday|this morning|this evening|finally|already|just)[,\s]+)*(?:i\s+(?:(?:have|had|finally|already|just|also|successfully)\s+)*|i['’]ve\s+(?:(?:finally|already|just|also|successfully)\s+)*)?(" + '|'.join(PAST_ACTIONS) + r')\b', re.I)
+PAST_PATTERN = '|'.join(PAST_ACTIONS)
+CLAUSE_START = re.compile(r"^(?:then\s+)?(?:" + PAST_PATTERN +
+    r"|i|we|he|she|they|still|not|never)\b|^[^\W\d_][\w’'\-]*\s+"
+    r"(?:(?:also|still|has|had)\s+)*(?:" + PAST_PATTERN + r"|might|will|could|should|hasn['’]t|hadn['’]t)\b", re.I)
+
+
+def completion_clauses(text, evidence):
+    """Keep actor/certainty local to coordinated actions, retaining source offsets."""
+    start = text.find(evidence)
+    if start < 0 or text.count(evidence) != 1:
+        return []
+    boundary = max(text.rfind(mark, 0, start) for mark in ('.', '!', '?', '\n', ';')) + 1
+    end_match = re.search(r'[.!?\n;]', text[start:])
+    end = start + end_match.end() if end_match else len(text)
+    sentence = text[boundary:end]
+    if '?' in sentence:
+        return []
+    parts = []
+    left = 0
+    for separator in re.finditer(r',\s*(?:(?:and|but|while|then)\s+)?|\s+(?:and|but|while)\s+', sentence, re.I):
+        if CLAUSE_START.match(sentence[separator.end():]):
+            parts.append((left, separator.start()))
+            left = separator.end()
+    parts.append((left, len(sentence)))
+    inherited = False
+    valid = []
+    for index, (left, right) in enumerate(parts):
+        raw = sentence[left:right]
+        clause = raw.lstrip()
+        offset = boundary + left + len(raw) - len(clause)
+        then = re.match(r'then\s+', clause, re.I)
+        if then:
+            offset += then.end()
+            clause = clause[then.end():]
+        actor = ACTOR.match(clause)
+        explicit_author = re.match(r"i(?:\s|['’]ve\b)", clause, re.I)
+        # Bare coordinated verbs inherit only a definite author action, never
+        # a third party, hypothetical or negated first clause.
+        safe = bool(actor and not UNFINISHED.search(clause) and
+                    (index == 0 or explicit_author or inherited))
+        inherited = safe
+        if safe:
+            action_start = offset + actor.start(1)
+            action_end = offset + actor.end(1)
+            if max(start, action_start) < min(start + len(evidence), action_end):
+                valid.append((PAST_ACTIONS[actor[1].casefold()], clause))
+    return valid
 
 
 def words(text):
@@ -35,21 +83,47 @@ def logical_date(note):
 
 def completed_action(text, item):
     evidence = item['evidence']
-    start = text.find(evidence)
-    if start < 0 or UNFINISHED.search(evidence):
-        return None
-    boundary = max(text.rfind(mark, 0, start) for mark in ('.', '!', '?', '\n', ';'))
-    end_match = re.search(r'[.!?\n;]', text[start:])
-    end = start + end_match.end() if end_match else len(text)
-    sentence = text[boundary + 1:end].strip()
-    actor = ACTOR.match(sentence)
-    if not actor or UNFINISHED.search(sentence) or '?' in sentence:
-        return None
-    action = PAST_ACTIONS[actor[1].casefold()]
     completed_words = words(item['value'])
-    if len(completed_words) < 2 or action not in completed_words or not completed_words <= words(evidence):
+    if len(completed_words) < 2 or not completed_words <= words(evidence):
         return None
-    return completed_words
+    matches = [clause for action, clause in completion_clauses(text, evidence)
+               if action in completed_words and completed_words <= words(clause)]
+    return completed_words if len(matches) == 1 else None
+
+
+def completion_hints(text):
+    """Concrete author actions that a mixed journal response must account for."""
+    hints = []
+    for sentence in re.finditer(r'[^.!?\n;]+[.!?]?', text):
+        for action, clause in completion_clauses(text, sentence[0]):
+            # Vague "got things done" or "finished up" is not a task identity.
+            if action in {'get', 'finish', 'complete', 'look'}:
+                continue
+            actor = ACTOR.match(clause)
+            quote = clause.strip()
+            if actor and len(words(quote)) >= 2:
+                hints.append({'quote':quote, 'action':action})
+    return hints
+
+
+def missing_completions(result, text):
+    missing = []
+    for hint in completion_hints(text):
+        actor = ACTOR.match(hint['quote'])
+        position = text.find(hint['quote']) + actor.start(1)
+        def covers(item):
+            start = text.find(item.evidence)
+            return start <= position < start + len(item.evidence)
+        if not any(covers(item) and hint['action'] in words(item.value) and words(item.value) <= words(hint['quote'])
+                   and completed_action(text, item.model_dump()) for item in result.completed_personal) and not any(
+                covers(item) and item.category == 'context' for item in result.memories):
+            # Person-related completed actions remain profile context; they do
+            # not need a personal completion that could close somebody else's task.
+            names = {item.person for item in result.memories}
+            if any(re.search(r'(?<!\w)' + re.escape(name) + r'(?!\w)', hint['quote'], re.I) for name in names):
+                continue
+            missing.append(hint)
+    return missing
 
 
 def is_completed_intention(text, intention, completions):
