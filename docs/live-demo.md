@@ -14,22 +14,6 @@ Open **http://127.0.0.1:8001**. This leaves the local personal database alone. T
 
 The local personal app still starts with `sh start.sh` at port 8000. After a code update, restart the backend and rebuild the frontend before testing.
 
-## Deploy with Render
-
-1. Review, commit, and push the deployment changes to the Weaver repository.
-2. Create/sign into Render and authorize access to the repository.
-3. Create a Blueprint using `render.yaml`. Review the resource plan before applying it: it specifies **one paid Starter web service**, manual deploys, and **no persistent disk**.
-4. Enter `NEBIUS_API_KEY` in Render's secret environment-variable prompt. Keep the key out of the repository, frontend build, logs, and chat. The model and endpoint are specified in the Blueprint; confirm your account supports them.
-5. Deploy. Render builds the Docker image and checks `/healthz`. Its own hostname is allowed automatically from `RENDER_EXTERNAL_HOSTNAME`. For a custom domain, add its exact hostname to `WEAVER_ALLOWED_HOSTS` and HTTPS origin to `WEAVER_ALLOWED_ORIGINS`.
-6. Open the resulting HTTPS URL in two independent browser sessions. Verify that writing in one does not appear in the other. Test a fictional entry through Journal, its extraction summary, People/You, and Insights; then export and reset.
-7. Restart the service to check the session-ended screen. Verify that a fresh session works afterward. Keep the demo URL, walkthrough link, and access instructions in the README current.
-
-Keep exactly **one service replica and one Uvicorn process**. The two organization threads are separate from server processes. Sessions and quota counters are process-local; adding replicas requires shared session/queue infrastructure and is outside this demo design.
-
-The hosted command binds to `0.0.0.0:$PORT`, disables access logs, and serves the API and built interface together. Nothing here changes the loopback binding of the local `start.sh`.
-
-Render's [Docker guide](https://render.com/docs/docker), [Blueprint reference](https://render.com/docs/blueprint-spec), and [health checks](https://render.com/docs/health-checks) describe these settings. The [Free plan](https://render.com/docs/free) sleeps after inactivity and can lose session data on spin-down; use an always-on service for reliable judging access. Creating the paid service is a separate account/billing action.
-
 ## Optional container check
 
 Requires a working Docker installation. From the repo root:
@@ -80,4 +64,4 @@ npm --prefix frontend run build
 
 The automated suites use isolated temporary storage and mocked provider calls. `tests/test_demo.py` checks API/job isolation, expiry, reset during extraction, limits, host/origin checks, and personal-database separation. `tests/demo_session.test.mjs` checks browser session/draft behavior, authenticated exports, reset failure, and stale/expired API responses.
 
-Verify the container build and the hosted flow before describing the demo as live. Keep the hosting service and provider credits available through December 15, 2026 for judging. Session data itself is deliberately temporary.
+After updates, verify session isolation, note organization, export, and reset in the hosted demo. Keep the hosting service and provider credits available through December 15, 2026 for judging. Session data itself is deliberately temporary.

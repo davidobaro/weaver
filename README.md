@@ -92,7 +92,7 @@ More fictional writing is available in [examples/fictional-notes.md](examples/fi
 
 ## Temporary demo mode
 
-Run `sh start-demo.sh` after setup to try isolated temporary workspaces at **http://127.0.0.1:8001**, or use the [hosted demo](https://weaver-demo.onrender.com/#notes). Your personal database stays separate. Demo sessions expire and can be reset. See [demo deployment and limits](docs/live-demo.md) for Render setup.
+Run `sh start-demo.sh` after setup to try isolated temporary workspaces at **http://127.0.0.1:8001**, or use the [hosted demo](https://weaver-demo.onrender.com/#notes). Your personal database stays separate. Demo sessions expire and can be reset. See [demo sessions and limits](docs/live-demo.md) for lifecycle details and usage limits.
 
 ## Tests
 
