@@ -12,11 +12,11 @@ Built for the **Nebius × NVIDIA Global AI Hackathon — Best Apps and Agents** 
 
 | Resource | Status |
 | --- | --- |
-| Hosted demo or test build | Pending — URL and judge access instructions will be added here before submission. |
-| Public YouTube walkthrough | Pending — a working-product walkthrough under three minutes will be linked here. |
+| Hosted demo | [Try Weaver](https://weaver-demo.onrender.com/#notes) |
+| YouTube walkthrough | [Watch the demo](https://youtu.be/tte88dAvdNg) |
 | Source code | [github.com/davidobaro/weaver](https://github.com/davidobaro/weaver) |
 
-The local application works using the setup below. Hosted judge access is not available yet; local setup requires your own Nebius Token Factory key. Final judge access must be free through December 15, 2026, with any required access instructions provided in the submission. See the [official rules](https://nebiusglobalaihackathon.devpost.com/rules).
+Open the hosted demo to try Weaver without an account or API key. Use fictional entries: each browser session has a temporary workspace that expires after inactivity and clears on a server restart. You can export your memories or reset the demo from the interface. Local setup requires your own Nebius Token Factory key. Judge access must remain free through December 15, 2026. See the [official rules](https://nebiusglobalaihackathon.devpost.com/rules).
 
 ## What it does
 
@@ -92,7 +92,7 @@ More fictional writing is available in [examples/fictional-notes.md](examples/fi
 
 ## Temporary demo mode
 
-Run `sh start-demo.sh` after setup to try isolated temporary workspaces at **http://127.0.0.1:8001**. Your personal database stays separate. Demo sessions expire and can be reset; the hosted URL is still pending. See [demo deployment and limits](docs/live-demo.md) for Render setup.
+Run `sh start-demo.sh` after setup to try isolated temporary workspaces at **http://127.0.0.1:8001**, or use the [hosted demo](https://weaver-demo.onrender.com/#notes). Your personal database stays separate. Demo sessions expire and can be reset. See [demo deployment and limits](docs/live-demo.md) for Render setup.
 
 ## Tests
 

@@ -22,7 +22,7 @@ The local personal app still starts with `sh start.sh` at port 8000. After a cod
 4. Enter `NEBIUS_API_KEY` in Render's secret environment-variable prompt. Keep the key out of the repository, frontend build, logs, and chat. The model and endpoint are specified in the Blueprint; confirm your account supports them.
 5. Deploy. Render builds the Docker image and checks `/healthz`. Its own hostname is allowed automatically from `RENDER_EXTERNAL_HOSTNAME`. For a custom domain, add its exact hostname to `WEAVER_ALLOWED_HOSTS` and HTTPS origin to `WEAVER_ALLOWED_ORIGINS`.
 6. Open the resulting HTTPS URL in two independent browser sessions. Verify that writing in one does not appear in the other. Test a fictional entry through Journal, its extraction summary, People/You, and Insights; then export and reset.
-7. Restart the service to check the session-ended screen. Verify that a fresh session works afterward. Add the verified URL and access instructions to the README; keep the YouTube link pending until the walkthrough is public.
+7. Restart the service to check the session-ended screen. Verify that a fresh session works afterward. Keep the demo URL, walkthrough link, and access instructions in the README current.
 
 Keep exactly **one service replica and one Uvicorn process**. The two organization threads are separate from server processes. Sessions and quota counters are process-local; adding replicas requires shared session/queue infrastructure and is outside this demo design.
 
